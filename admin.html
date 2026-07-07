@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TobaKart Super Admin | Command Center</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { 
+            theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] }, colors: { primary: '#0f172a', accent: '#3b82f6' } } } 
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-body: #f8fafc;
+            --bg-surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --primary: #0f172a;
+            --border-color: #e2e8f0;
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); color: var(--text-main); -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .glass-panel { background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 1.25rem; box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03); }
+        .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .loader { border: 3px solid var(--border-color); border-top: 3px solid var(--primary); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        
+        @keyframes pop { 0% { transform: scale(0.95) translateY(10px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .pro-input { width: 100%; background: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 0.75rem; padding: 0.75rem 1rem; outline: none; transition: 0.2s; font-weight: 600;}
+        .pro-input:focus { border-color: var(--primary); background: var(--bg-surface); box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.1); }
+        .pro-btn { background: var(--primary); color: #ffffff; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 800; transition: 0.2s; cursor: pointer; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);}
+        .pro-btn:active { transform: scale(0.98); box-shadow: none; }
+    </style>
+</head>
+<body class="antialiased h-screen overflow-hidden flex flex-col">
+
+    <div id="toast-container" class="fixed top-6 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 w-11/12 max-w-md pointer-events-none"></div>
+
+    <div id="confirm-modal" class="fixed inset-0 z-[90] hidden items-center justify-center bg-gray-900/60 backdrop-blur-sm px-4">
+        <div class="glass-panel w-full max-w-sm p-6 animate-pop text-center shadow-2xl">
+            <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3 class="text-xl font-black mb-2" id="confirm-title">Confirm Action</h3>
+            <p class="text-[var(--text-muted)] mb-6 text-sm font-medium" id="confirm-message">This action cannot be undone.</p>
+            <div class="flex gap-3"><button id="btn-confirm-cancel" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold active:bg-gray-200">Cancel</button><button id="btn-confirm-ok" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold active:bg-red-700">Confirm</button></div>
+        </div>
+    </div>
+
+    <div id="auth-view" class="flex-1 flex items-center justify-center p-4 relative h-screen bg-gray-50 z-50 absolute inset-0">
+        <div class="glass-panel w-full max-w-md p-8 animate-pop relative shadow-2xl">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-primary text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-lg"><i class="fa-solid fa-bolt"></i></div>
+                <h1 class="text-2xl font-black text-[var(--text-main)]">TobaKart Super Admin</h1>
+                <p class="text-[var(--text-muted)] text-xs font-bold mt-1 uppercase tracking-widest">Global Command Center</p>
+            </div>
+            <div id="login-form-fields" class="space-y-4">
+                <input type="text" id="admin-username" placeholder="Username" class="pro-input">
+                <input type="password" id="admin-password" placeholder="Password" class="pro-input">
+                <button id="btn-login" class="w-full pro-btn py-4 text-base mt-2">Secure Access</button>
+            </div>
+            <div id="auth-error-msg" class="hidden mt-4 bg-red-50 text-red-600 p-4 rounded-xl text-sm text-center font-bold border border-red-100"></div>
+        </div>
+    </div>
+
+    <div id="app-view" class="hidden h-screen w-full flex flex-col md:flex-row bg-[var(--bg-body)]">
+        
+        <nav class="bg-[var(--bg-surface)] border-r border-[var(--border-color)] w-64 h-screen p-4 flex-col justify-between z-20 shrink-0 hidden md:flex shadow-sm">
+            <div>
+                <div class="flex items-center gap-3 px-2 mb-8 mt-2"><div class="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center shadow-md"><i class="fa-solid fa-cube text-lg"></i></div><div><h2 class="font-black text-lg leading-tight text-gray-900">TobaKart</h2><span class="text-[9px] text-gray-500 font-black uppercase tracking-widest">Super Admin</span></div></div>
+                <div class="space-y-1">
+                    <button class="nav-btn active w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold transition-all bg-gray-100 text-primary" data-target="dashboard"><i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard</button>
+                    <button class="nav-btn w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold transition-all text-[var(--text-muted)] hover:bg-gray-50" data-target="categories"><i class="fa-solid fa-layer-group w-5 text-center"></i> Categories</button>
+                    <button class="nav-btn w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold transition-all text-[var(--text-muted)] hover:bg-gray-50" data-target="banners"><i class="fa-solid fa-images w-5 text-center"></i> Banners</button>
+                    <button class="nav-btn w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold transition-all text-[var(--text-muted)] hover:bg-gray-50" data-target="products"><i class="fa-solid fa-box-open w-5 text-center"></i> Global Catalog</button>
+                    <button class="nav-btn w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold transition-all text-[var(--text-muted)] hover:bg-gray-50" data-target="rewards"><i class="fa-solid fa-gift w-5 text-center"></i> Set Rewards</button>
+                    <button class="nav-btn w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold transition-all text-[var(--text-muted)] hover:bg-gray-50" data-target="sellers"><i class="fa-solid fa-store w-5 text-center"></i> Sellers</button>
+                    <button class="nav-btn w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold transition-all text-[var(--text-muted)] hover:bg-gray-50" data-target="users"><i class="fa-solid fa-users w-5 text-center"></i> Users & Progress</button>
+                    <button class="nav-btn w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold transition-all text-[var(--text-muted)] hover:bg-gray-50" data-target="orders"><i class="fa-solid fa-receipt w-5 text-center"></i> All Orders</button>
+                    <button class="nav-btn w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold transition-all text-[var(--text-muted)] hover:bg-gray-50" data-target="delivery"><i class="fa-solid fa-motorcycle w-5 text-center"></i> Delivery Fleet</button>
+                </div>
+            </div>
+            <button id="btn-logout-desktop" class="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-red-500 hover:bg-red-50 transition-all mt-4"><i class="fa-solid fa-right-from-bracket w-5 text-center"></i> Logout Session</button>
+        </nav>
+
+        <main class="flex-1 h-full overflow-y-auto p-4 md:p-8 pb-28 relative bg-[var(--bg-body)]">
+            
+            <section id="sec-dashboard" class="animate-pop block max-w-6xl mx-auto">
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <h2 class="text-3xl font-black text-[var(--text-main)] leading-none mb-1">Command Center</h2>
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Real-time Platform Analytics</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="glass-panel p-5"><div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3"><i class="fa-solid fa-users"></i></div><p class="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-wider mb-0.5">Total Users</p><h3 class="text-3xl font-black text-gray-900" id="stat-users">0</h3></div>
+                    <div class="glass-panel p-5"><div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-3"><i class="fa-solid fa-store"></i></div><p class="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-wider mb-0.5">Approved Sellers</p><h3 class="text-3xl font-black text-gray-900" id="stat-sellers">0</h3></div>
+                    <div class="glass-panel p-5"><div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center mb-3"><i class="fa-solid fa-box"></i></div><p class="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-wider mb-0.5">Total Orders</p><h3 class="text-3xl font-black text-gray-900" id="stat-orders">0</h3></div>
+                    <div class="glass-panel p-5"><div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3"><i class="fa-solid fa-indian-rupee-sign"></i></div><p class="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-wider mb-0.5">Platform Revenue</p><h3 class="text-3xl font-black text-emerald-600" id="stat-revenue">₹0</h3></div>
+                </div>
+
+                <h3 class="text-sm font-black text-gray-800 uppercase tracking-widest mb-3"><i class="fa-solid fa-satellite-dish text-accent mr-1"></i> Live Cross-Panel Activity</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="glass-panel p-5 border-l-4 border-blue-500 bg-white shadow-sm hover:shadow-md transition-shadow">
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Top Shopper (This Month)</h4>
+                        <div id="dash-top-shopper">Loading...</div>
+                    </div>
+                    <div class="glass-panel p-5 border-l-4 border-purple-500 bg-white shadow-sm hover:shadow-md transition-shadow">
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Top Earning Seller</h4>
+                        <div id="dash-top-seller">Loading...</div>
+                    </div>
+                    <div class="glass-panel p-5 border-l-4 border-orange-500 bg-white shadow-sm hover:shadow-md transition-shadow">
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Active Delivery Fleet</h4>
+                        <div id="dash-fleet-status">Loading...</div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 w-full md:w-2/3 lg:w-1/2">
+                    <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Master Order Status Distribution</h3>
+                    <div class="relative h-64 w-full flex justify-center"><canvas id="orderChart"></canvas></div>
+                </div>
+            </section>
+
+            <section id="sec-categories" class="hidden max-w-6xl mx-auto">
+                <h2 class="text-2xl font-black mb-6 text-[var(--text-main)]">Categories Setup</h2>
+                <div class="glass-panel p-6 mb-6">
+                    <form id="category-form" class="flex flex-col gap-4 items-end md:flex-row">
+                        <div class="flex-1 w-full">
+                            <label class="block text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Category Name</label>
+                            <input type="text" id="cat-name" required class="pro-input font-bold" placeholder="e.g. Cigarettes">
+                        </div>
+                        <div class="flex-1 w-full">
+                            <label class="block text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Category Image (Drive Link)</label>
+                            <input type="text" id="cat-image" required class="pro-input font-bold" placeholder="Paste Google Drive Link Here...">
+                        </div>
+                        <div class="flex-1 w-full">
+                            <label class="block text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Sub Categories Summary</label>
+                            <input type="text" id="cat-sub" class="pro-input font-bold" placeholder="e.g. Classic, Mint, Ice">
+                        </div>
+                        <button type="submit" class="pro-btn w-full md:w-auto mt-2 md:mt-0 py-3.5">Save Category</button>
+                    </form>
+                    <p class="text-[10px] text-[var(--text-muted)] font-bold mt-2">*Note: Drive link permissions ko "Anyone with the link" rakhna zaroori hai.</p>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4" id="category-list"></div>
+            </section>
+
+            <section id="sec-banners" class="hidden max-w-6xl mx-auto">
+                <h2 class="text-2xl font-black mb-6 text-[var(--text-main)]">Promo Banners</h2>
+                <div class="glass-panel p-6 mb-6">
+                    <div class="flex flex-col gap-2">
+                        <div class="flex flex-col md:flex-row gap-4 items-center">
+                            <input type="text" id="banner-drive-link" placeholder="Paste Google Drive Link Here..." class="pro-input w-full md:flex-1 h-12">
+                            <button id="btn-save-banner" class="w-full md:w-auto pro-btn px-8 h-12 shrink-0 shadow-md">Activate Banner</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="banner-list"></div>
+            </section>
+
+            <section id="sec-products" class="hidden max-w-6xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-black text-[var(--text-main)]">Global Catalog</h2>
+                    <button id="btn-add-product" class="pro-btn text-sm px-5 py-2.5 shadow-md"><i class="fa-solid fa-plus mr-1"></i> Add Global Item</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="products-list-cards"></div>
+            </section>
+
+            <section id="sec-rewards" class="hidden max-w-6xl mx-auto">
+                <h2 class="text-2xl font-black mb-6 text-[var(--text-main)]">Global Reward Rules</h2>
+                <div class="glass-panel p-6 mb-6 bg-gray-50 border border-gray-200">
+                    <form id="reward-form">
+                        <div class="flex flex-col md:flex-row gap-4 items-end mb-4">
+                            <div class="flex-1 w-full"><label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Target Shopping Amount (₹)</label><input type="number" id="rew-amount" required class="pro-input bg-white" placeholder="e.g. 50000"></div>
+                            <div class="flex-1 w-full"><label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Gift Item</label><input type="text" id="rew-gift" required class="pro-input bg-white" placeholder="e.g. 1 Silver Coin"></div>
+                        </div>
+                        <div class="flex flex-col md:flex-row gap-4 items-end">
+                            <div class="flex-1 w-full"><label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Reward Rule (T&C)</label><input type="text" id="rew-rule" required class="pro-input bg-white" placeholder="e.g. Valid only on successfully delivered prepaid orders."></div>
+                            <button type="submit" class="pro-btn px-8 py-3.5 mt-2 md:mt-0 w-full md:w-auto">Save Reward Level</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="rewards-list"></div>
+            </section>
+
+            <section id="sec-users" class="hidden max-w-6xl mx-auto">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-black text-[var(--text-main)] leading-none mb-1">Users & Rewards Tracking</h2>
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Monitor customer shopping milestones</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="users-list-cards"></div>
+            </section>
+            
+            <section id="sec-orders" class="hidden max-w-6xl mx-auto">
+                <h2 class="text-2xl font-black mb-6 text-[var(--text-main)]">Master Order Log</h2>
+                <div class="space-y-4" id="orders-list-cards"></div>
+            </section>
+
+            <section id="sec-sellers" class="hidden max-w-6xl mx-auto">
+                <h2 class="text-2xl font-black mb-6 text-[var(--text-main)]">Sellers & Payouts</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="sellers-list-cards"></div>
+            </section>
+            
+            <section id="sec-delivery" class="hidden max-w-6xl mx-auto">
+                <h2 class="text-2xl font-black mb-6 text-[var(--text-main)]">Delivery Fleet & Payouts</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="delivery-list-cards"></div>
+            </section>
+
+        </main>
+
+        <nav class="md:hidden bg-white border-t border-gray-100 fixed bottom-0 left-0 w-full flex overflow-x-auto hide-scrollbar z-50 px-2 py-3 gap-2 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+            <button class="nav-btn active flex-shrink-0 flex flex-col items-center justify-center w-16 h-12 rounded-xl bg-gray-100 text-primary" data-target="dashboard"><i class="fa-solid fa-chart-pie text-lg mb-1"></i><span class="text-[9px] font-bold">Dash</span></button>
+            <button class="nav-btn flex-shrink-0 flex flex-col items-center justify-center w-16 h-12 rounded-xl text-gray-400" data-target="categories"><i class="fa-solid fa-layer-group text-lg mb-1"></i><span class="text-[9px] font-bold">Cats</span></button>
+            <button class="nav-btn flex-shrink-0 flex flex-col items-center justify-center w-16 h-12 rounded-xl text-gray-400" data-target="banners"><i class="fa-solid fa-images text-lg mb-1"></i><span class="text-[9px] font-bold">Banners</span></button>
+            <button class="nav-btn flex-shrink-0 flex flex-col items-center justify-center w-16 h-12 rounded-xl text-gray-400" data-target="products"><i class="fa-solid fa-box-open text-lg mb-1"></i><span class="text-[9px] font-bold">Catalog</span></button>
+            <button class="nav-btn flex-shrink-0 flex flex-col items-center justify-center w-16 h-12 rounded-xl text-gray-400" data-target="rewards"><i class="fa-solid fa-gift text-lg mb-1"></i><span class="text-[9px] font-bold">Rewards</span></button>
+            <button class="nav-btn flex-shrink-0 flex flex-col items-center justify-center w-16 h-12 rounded-xl text-gray-400" data-target="sellers"><i class="fa-solid fa-store text-lg mb-1"></i><span class="text-[9px] font-bold">Sellers</span></button>
+            <button class="nav-btn flex-shrink-0 flex flex-col items-center justify-center w-16 h-12 rounded-xl text-gray-400" data-target="users"><i class="fa-solid fa-users text-lg mb-1"></i><span class="text-[9px] font-bold">Users</span></button>
+            <button class="nav-btn flex-shrink-0 flex flex-col items-center justify-center w-16 h-12 rounded-xl text-gray-400" data-target="orders"><i class="fa-solid fa-receipt text-lg mb-1"></i><span class="text-[9px] font-bold">Orders</span></button>
+            <button class="nav-btn flex-shrink-0 flex flex-col items-center justify-center w-16 h-12 rounded-xl text-gray-400" data-target="delivery"><i class="fa-solid fa-motorcycle text-lg mb-1"></i><span class="text-[9px] font-bold">Fleet</span></button>
+            <button id="btn-logout-mobile" class="flex-shrink-0 flex flex-col items-center justify-center w-16 h-12 rounded-xl text-red-500"><i class="fa-solid fa-right-from-bracket text-lg mb-1"></i><span class="text-[9px] font-bold">Exit</span></button>
+        </nav>
+    </div>
+
+    <div id="product-modal" class="fixed inset-0 z-[80] hidden items-end md:items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
+        <div class="glass-panel w-full max-w-lg p-6 slide-in max-h-[85vh] overflow-y-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-6 pb-2 border-b border-[var(--border-color)]">
+                <h3 class="text-xl font-black text-gray-900" id="product-modal-title">Add Product</h3>
+                <button id="btn-close-modal" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="product-form" class="space-y-4">
+                <input type="hidden" id="prod-id">
+                <div><label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Product Title</label><input type="text" id="prod-title" required class="pro-input"></div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Price (₹)</label><input type="number" id="prod-price" required class="pro-input"></div>
+                    <div><label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Category</label><select id="prod-category" required class="pro-input cursor-pointer"></select></div>
+                </div>
+                
+                <div><label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Stock</label><input type="number" id="prod-stock" required class="pro-input"></div>
+                
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Image (Base64 / Drive)</label>
+                    <label class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-[var(--border-color)] rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <div class="flex flex-col items-center justify-center" id="upload-placeholder"><i class="fa-solid fa-cloud-arrow-up text-3xl mb-1 text-[var(--primary)] opacity-50"></i><p class="text-[10px] font-black uppercase tracking-widest text-gray-400 mt-1">Tap to Upload</p></div>
+                        <img id="prod-img-preview" class="hidden h-full object-contain rounded-lg p-1" />
+                        <input type="file" id="prod-img-file" class="hidden" accept="image/*" />
+                    </label>
+                    <input type="hidden" id="prod-img-url">
+                </div>
+                <div class="pt-2"><button type="submit" id="btn-save-product" class="w-full pro-btn py-4 text-base">Save Data</button></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyABbMfeWlgf40q4Lu8PeBADB-ta-hJWeUU",
+            authDomain: "tobacart-cefc5.firebaseapp.com",
+            databaseURL: "https://tobacart-cefc5-default-rtdb.firebaseio.com",
+            projectId: "tobacart-cefc5",
+            storageBucket: "tobacart-cefc5.firebasestorage.app",
+            messagingSenderId: "492221338733",
+            appId: "1:492221338733:web:594c91ca38c85bfd711b64"
+        };
+        const FIREBASE_URL = firebaseConfig.databaseURL + "/";
+
+        function getDB(col) {
+            try {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', FIREBASE_URL + 'tobacart_' + col + '.json', false); 
+                xhr.send(null);
+                if (xhr.status === 200 && xhr.responseText && xhr.responseText !== "null") {
+                    return JSON.parse(xhr.responseText);
+                }
+            } catch(e) { console.error("Database Fetch Error:", e); }
+            return [];
+        }
+
+        function saveDB(col, data) {
+            try {
+                localStorage.setItem('tobacart_' + col, JSON.stringify(data)); 
+                var xhr = new XMLHttpRequest();
+                xhr.open('PUT', FIREBASE_URL + 'tobacart_' + col + '.json', true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.send(JSON.stringify(data));
+            } catch(e) { console.error("Database Save Error:", e); }
+        }
+
+        let orderChartInstance = null;
+        
+        function showToast(msg, type='success') {
+            const t = document.createElement('div'); t.className = `glass-panel bg-white flex items-center gap-3 p-4 shadow-2xl slide-in border-l-4 ${type==='error'?'border-red-500':'border-emerald-500'} fixed top-6 left-1/2 transform -translate-x-1/2 z-[200] w-11/12 max-w-sm rounded-xl`;
+            const icon = type === 'error' ? 'fa-triangle-exclamation text-red-500' : 'fa-circle-check text-emerald-500';
+            t.innerHTML = `<i class="fa-solid ${icon} text-lg"></i> <span class="font-bold text-sm text-[var(--text-main)]">${msg}</span>`;
+            document.body.appendChild(t); setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s ease'; setTimeout(() => t.remove(), 300); }, 3000);
+        }
+        
+        function showConfirm(msg, onConfirm) {
+            const m = document.getElementById('confirm-modal'); document.getElementById('confirm-message').textContent = msg; m.classList.remove('hidden'); m.classList.add('flex');
+            const okBtn = document.getElementById('btn-confirm-ok'); const newOk = okBtn.cloneNode(true); okBtn.parentNode.replaceChild(newOk, okBtn);
+            newOk.onclick = () => { m.classList.add('hidden'); m.classList.remove('flex'); onConfirm(); };
+            document.getElementById('btn-confirm-cancel').onclick = () => { m.classList.add('hidden'); m.classList.remove('flex'); };
+        }
+
+        // Helper to convert drive links to direct image links
+        function convertToDirectLink(driveUrl) { const regex = /\/d\/([a-zA-Z0-9_-]+)/; const match = driveUrl.match(regex); if (match && match[1]) { return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1200`; } return driveUrl; }
+
+        // Setup defaults (Updated to match new category structure to prevent crash)
+        if(getDB('categories').length === 0) saveDB('categories', [{ id: 'cat_1', name: 'Cigarettes', imageUrl: 'https://via.placeholder.com/150', subCategories: 'Classic' }]);
+
+        function checkAuth() {
+            if (sessionStorage.getItem('tobacart_admin_auth') === 'true') { document.getElementById('auth-view').classList.add('hidden'); document.getElementById('app-view').classList.remove('hidden'); initDashboard(); } 
+            else { document.getElementById('auth-view').classList.remove('hidden'); document.getElementById('app-view').classList.add('hidden'); }
+        }
+        
+        document.getElementById('btn-login').onclick = () => {
+            if(document.getElementById('admin-username').value === 'admin' && document.getElementById('admin-password').value === 'admin123') { sessionStorage.setItem('tobacart_admin_auth', 'true'); checkAuth(); showToast('Access Granted to Command Center'); } 
+            else { document.getElementById('auth-error-msg').textContent = "Invalid credentials. Please try again."; document.getElementById('auth-error-msg').classList.remove('hidden'); }
+        };
+        
+        const logOutAction = () => showConfirm("Logout from Admin Panel?", () => { sessionStorage.removeItem('tobacart_admin_auth'); checkAuth(); });
+        document.getElementById('btn-logout-desktop').onclick = logOutAction;
+        document.getElementById('btn-logout-mobile').onclick = logOutAction;
+
+        // ALL Navigation Listeners
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('bg-gray-100', 'text-primary'); b.classList.add('text-[var(--text-muted)]'); });
+                e.currentTarget.classList.remove('text-[var(--text-muted)]'); e.currentTarget.classList.add('bg-gray-100', 'text-primary');
+                document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+                document.getElementById(`sec-${e.currentTarget.dataset.target}`).classList.remove('hidden'); document.getElementById(`sec-${e.currentTarget.dataset.target}`).classList.add('animate-pop');
+                
+                if(e.currentTarget.dataset.target === 'dashboard') renderDashboardStats();
+                if(e.currentTarget.dataset.target === 'categories') renderCategories(); 
+                if(e.currentTarget.dataset.target === 'banners') renderBanners();
+                if(e.currentTarget.dataset.target === 'products') renderProducts(); 
+                if(e.currentTarget.dataset.target === 'orders') renderOrders();
+                if(e.currentTarget.dataset.target === 'sellers') renderSellers();
+                if(e.currentTarget.dataset.target === 'users') renderUsers();
+                if(e.currentTarget.dataset.target === 'rewards') renderRewardsAdmin();
+            });
+        });
+
+        function initDashboard() { 
+            renderDashboardStats(); renderCategories(); renderBanners(); renderProducts(); 
+            renderSellers(); renderUsers(); renderOrders(); renderDelivery(); renderRewardsAdmin();
+        }
+
+        function getCurrentMonthUserSpend(userId, orders) {
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            let total = 0;
+            orders.forEach(o => {
+                if (o.userId === userId && ['Delivered', 'Order Confirmed', 'Shipped', 'Out for Delivery'].includes(o.status)) {
+                    const parts = o.id.split('_');
+                    if (parts.length > 1) {
+                        const d = new Date(Number(parts[1]));
+                        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+                            total += o.total;
+                        }
+                    }
+                }
+            });
+            return total;
+        }
+
+        function renderDashboardStats() {
+            const users = getDB('users_profile'); 
+            const sellers = getDB('sellers_profile'); 
+            const orders = getDB('orders');
+            const fleet = getDB('delivery_profile');
+
+            const approvedSellers = sellers.filter(s => s.approved);
+            
+            document.getElementById('stat-users').innerText = users.length; 
+            document.getElementById('stat-sellers').innerText = approvedSellers.length; 
+            document.getElementById('stat-orders').innerText = orders.length;
+
+            let rev = 0; 
+            let counts = { Pending: 0, Packed: 0, Shipped: 0, 'Out for Delivery': 0, Delivered: 0, Cancelled: 0 };
+            
+            orders.forEach(d => { 
+                if(d.status === 'Delivered') rev += (d.total || 0); 
+                if(counts[d.status] !== undefined) counts[d.status]++; 
+            });
+            document.getElementById('stat-revenue').innerText = `₹${rev.toLocaleString('en-IN')}`;
+
+            let maxSpend = 0; let topUser = null;
+            users.forEach(u => {
+                let spend = getCurrentMonthUserSpend(u.id, orders);
+                if(spend >= maxSpend && spend > 0) { maxSpend = spend; topUser = u; }
+            });
+            document.getElementById('dash-top-shopper').innerHTML = topUser 
+                ? `<div class="flex items-center gap-3"><div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center font-black"><i class="fa-solid fa-crown"></i></div><div><p class="font-black text-gray-900 leading-tight">${topUser.name}</p><p class="text-xs font-bold text-gray-500">₹${maxSpend.toLocaleString('en-IN')} Spent</p></div></div>`
+                : `<p class="text-xs font-bold text-gray-400"><i class="fa-solid fa-ghost mr-1"></i> No active shoppers this month</p>`;
+
+            let sellerRev = {};
+            orders.forEach(o => { if(o.status === 'Delivered') { sellerRev[o.sellerId] = (sellerRev[o.sellerId] || 0) + o.total; } });
+            let topSellerId = Object.keys(sellerRev).sort((a,b) => sellerRev[b] - sellerRev[a])[0];
+            let topSeller = sellers.find(s => s.id === topSellerId);
+            document.getElementById('dash-top-seller').innerHTML = topSeller
+                ? `<div class="flex items-center gap-3"><div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center font-black"><i class="fa-solid fa-store"></i></div><div><p class="font-black text-gray-900 leading-tight">${topSeller.storeName}</p><p class="text-xs font-bold text-gray-500">₹${sellerRev[topSellerId].toLocaleString('en-IN')} Earned</p></div></div>`
+                : `<p class="text-xs font-bold text-gray-400"><i class="fa-solid fa-ghost mr-1"></i> No completed deliveries yet</p>`;
+
+            let onlineCount = fleet.filter(f => f.isOnline).length;
+            document.getElementById('dash-fleet-status').innerHTML = `
+                <div class="flex items-center gap-3"><div class="w-10 h-10 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center font-black"><i class="fa-solid fa-motorcycle"></i></div><div><p class="font-black text-gray-900 leading-tight">${onlineCount} / ${fleet.length}</p><p class="text-xs font-bold text-gray-500">Agents Online Now</p></div></div>
+            `;
+
+            const data = [counts.Pending, counts.Packed, counts.Shipped, counts['Out for Delivery'], counts.Delivered, counts.Cancelled || 0];
+            if(orderChartInstance) { orderChartInstance.data.datasets[0].data = data; orderChartInstance.update(); }
+            else { 
+                Chart.defaults.font.family = '"Plus Jakarta Sans", sans-serif';
+                orderChartInstance = new Chart(document.getElementById('orderChart').getContext('2d'), { 
+                    type: 'doughnut', 
+                    data: { labels: ['Pending','Packed','Shipped','Out','Delivered','Cancelled'], datasets: [{ data, backgroundColor: ['#f59e0b','#3b82f6','#8b5cf6','#0ea5e9','#10b981','#ef4444'], borderWidth: 0 }] }, 
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {font: {weight: 'bold', size: 10}} } }, cutout: '75%' } 
+                }); 
+            }
+        }
+
+        function renderUsers() {
+            const users = getDB('users_profile'); 
+            const list = document.getElementById('users-list-cards'); list.innerHTML = '';
+            if(!users.length) { list.innerHTML = `<div class="text-center p-10 col-span-3 border-dashed border-2 border-gray-200 rounded-3xl"><i class="fa-solid fa-users text-4xl text-gray-300 mb-2"></i><p class="text-sm font-bold text-gray-400">No registered users.</p></div>`; return; }
+            
+            const orders = getDB('orders');
+            const rewards = getDB('rewards').sort((a,b) => a.amount - b.amount);
+
+            users.forEach(d => {
+                const badge = d.blocked ? `<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider shadow-sm"><i class="fa-solid fa-ban mr-1"></i> Blocked</span>` : `<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider shadow-sm"><i class="fa-solid fa-check mr-1"></i> Active</span>`;
+                
+                let spend = getCurrentMonthUserSpend(d.id, orders);
+                let nextReward = rewards.find(r => r.amount > spend);
+                let progressHtml = '';
+                
+                if(nextReward) {
+                    let p = Math.min((spend/nextReward.amount)*100, 100);
+                    progressHtml = `
+                    <div class="mt-4 bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner relative overflow-hidden">
+                        <div class="flex justify-between text-[10px] font-black uppercase tracking-widest mb-2 relative z-10">
+                            <span class="text-primary">Spend: ₹${spend.toLocaleString('en-IN')}</span>
+                            <span class="text-gray-400">Target: ₹${nextReward.amount.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden mb-2 relative z-10"><div class="bg-primary h-2 rounded-full transition-all" style="width: ${p}%"></div></div>
+                        <p class="text-[10px] text-gray-600 font-bold leading-tight relative z-10 line-clamp-1"><i class="fa-solid fa-gift text-blue-500 mr-1"></i> Reward: ${nextReward.gift}</p>
+                    </div>`;
+                } else if(rewards.length > 0) {
+                    progressHtml = `<div class="mt-4 bg-emerald-50 p-4 rounded-xl border border-emerald-200 text-center"><p class="text-xs font-black text-emerald-700 uppercase tracking-widest flex items-center justify-center gap-1.5"><i class="fa-solid fa-crown text-lg"></i> Max Target Met!</p><p class="text-[10px] text-emerald-600 font-bold mt-1">Spends: ₹${spend.toLocaleString('en-IN')}</p></div>`;
+                } else {
+                    progressHtml = `<div class="mt-4 bg-gray-50 p-4 rounded-xl border border-gray-100 text-center"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest"><i class="fa-solid fa-ghost mr-1"></i> No Rewards Configured</p></div>`;
+                }
+
+                list.innerHTML += `
+                <div class="glass-panel p-5 flex flex-col justify-between shadow-sm border border-gray-100 bg-white hover:border-gray-300 transition-all hover:shadow-md">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-400"><i class="fa-solid fa-user"></i></div>
+                            <div>
+                                <p class="font-black text-sm text-gray-900 leading-tight mb-0.5">${d.name}</p>
+                                <p class="text-xs font-bold text-gray-500 mb-1"><i class="fa-solid fa-phone text-[9px] mr-1"></i> ${d.phone}</p>
+                                ${badge}
+                            </div>
+                        </div>
+                        <button onclick="window.toggleUserBlock('${d.id}', ${d.blocked})" class="${d.blocked ? 'bg-emerald-500 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'} w-8 h-8 rounded-full flex items-center justify-center active:scale-95 transition-all"><i class="fa-solid ${d.blocked ? 'fa-unlock' : 'fa-ban'} text-xs"></i></button>
+                    </div>
+                    ${progressHtml}
+                </div>`;
+            });
+        }
+        window.toggleUserBlock = (id, st) => showConfirm(`Are you sure you want to ${st ? 'Unblock' : 'Block'} this user?`, () => { let u = getDB('users_profile'); let i = u.findIndex(x => x.id === id); if(i>-1) { u[i].blocked = !st; saveDB('users_profile', u); renderUsers(); showToast(st ? 'User Unblocked' : 'User Blocked', st ? 'success' : 'error'); } });
+
+        // REWARDS ADMIN LOGIC
+        document.getElementById('reward-form').onsubmit = (e) => {
+            e.preventDefault();
+            let rewards = getDB('rewards');
+            rewards.push({
+                id: 'rew_' + Date.now(),
+                amount: Number(document.getElementById('rew-amount').value),
+                gift: document.getElementById('rew-gift').value,
+                rule: document.getElementById('rew-rule').value
+            });
+            saveDB('rewards', rewards);
+            document.getElementById('reward-form').reset();
+            renderRewardsAdmin();
+            showToast('Reward & Rule added successfully!');
+        };
+
+        function renderRewardsAdmin() {
+            const rewards = getDB('rewards').sort((a,b) => a.amount - b.amount);
+            const list = document.getElementById('rewards-list');
+            if(!rewards.length) { list.innerHTML = `<div class="text-center p-8 text-gray-400 font-bold w-full col-span-1 md:col-span-2 lg:col-span-3 border-dashed border-2 border-gray-200 rounded-xl bg-white"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-gift text-2xl text-gray-300"></i></div>No milestone rewards configured yet.</div>`; return; }
+            
+            list.innerHTML = rewards.map(r => `
+                <div class="glass-panel p-5 flex justify-between items-center bg-white shadow-sm border border-gray-100 hover:border-blue-200 transition-colors">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center text-xl shadow-inner shrink-0 mt-1"><i class="fa-solid fa-gift"></i></div>
+                        <div>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Target: ₹${r.amount.toLocaleString('en-IN')}</p>
+                            <p class="font-black text-sm text-gray-900 leading-tight mb-1.5">${r.gift}</p>
+                            <p class="text-[9px] text-gray-500 font-bold leading-snug line-clamp-2"><span class="text-gray-800">Rule:</span> ${r.rule || 'No specific rule added.'}</p>
+                        </div>
+                    </div>
+                    <button onclick="deleteReward('${r.id}')" class="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center shrink-0 active:scale-95 transition-transform hover:bg-red-100 ml-2"><i class="fa-solid fa-trash text-sm"></i></button>
+                </div>
+            `).join('');
+        }
+
+        window.deleteReward = (id) => showConfirm('Delete this milestone reward?', () => { saveDB('rewards', getDB('rewards').filter(r => r.id !== id)); renderRewardsAdmin(); showToast('Reward removed'); });
+
+        // 🔥 UPDATED CATEGORY SAVE & RENDER DISP SYSTEM WITH IMAGES & SUB CATS 🔥
+        document.getElementById('category-form').onsubmit = (e) => { 
+            e.preventDefault(); 
+            const inputLink = document.getElementById('cat-image').value.trim(); 
+            const directLink = convertToDirectLink(inputLink);
+            let cats = getDB('categories'); 
+            cats.push({ 
+                id: 'cat_' + Date.now(), 
+                name: document.getElementById('cat-name').value, 
+                imageUrl: directLink,
+                subCategories: document.getElementById('cat-sub').value
+            }); 
+            saveDB('categories', cats); 
+            document.getElementById('category-form').reset(); 
+            renderCategories(); 
+            showToast('Category Added Successfully!'); 
+        };
+
+        function renderCategories() {
+            const cats = getDB('categories'); 
+            const list = document.getElementById('category-list');
+            list.innerHTML = cats.map(c => `
+                <div class="glass-panel p-4 flex flex-col items-center relative group bg-white shadow-sm border border-gray-100">
+                    <button onclick="deleteCategory('${c.id}')" class="absolute top-2 right-2 text-red-400 hover:text-red-600 bg-red-50 w-6 h-6 rounded flex items-center justify-center shadow-sm"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                    <img src="${c.imageUrl}" class="w-16 h-16 object-contain rounded-xl mb-2 border border-gray-100" onerror="this.src='https://via.placeholder.com/150'">
+                    <p class="font-black text-xs text-gray-800 text-center leading-tight">${c.name}</p>
+                    ${c.subCategories ? `<p class="text-[9px] font-bold text-gray-400 mt-1 text-center line-clamp-1">${c.subCategories}</p>` : ''}
+                </div>`).join('');
+            document.getElementById('prod-category').innerHTML = cats.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        }
+        window.deleteCategory = (id) => showConfirm('Delete category permanently?', () => { saveDB('categories', getDB('categories').filter(c => c.id !== id)); renderCategories(); showToast('Category deleted'); });
+
+        // BANNERS
+        document.getElementById('btn-save-banner').onclick = () => { const inputLink = document.getElementById('banner-drive-link').value.trim(); if(!inputLink) return showToast('Please enter a valid drive link!', 'error'); const directLink = convertToDirectLink(inputLink); try { let banners = getDB('banners'); banners.push({ id: 'ban_' + Date.now(), imageUrl: directLink }); saveDB('banners', banners); showToast('Banner Activated!'); document.getElementById('banner-drive-link').value = ''; renderBanners(); } catch (err) { showToast('Storage Error!', 'error'); } };
+        function renderBanners() {
+            const list = document.getElementById('banner-list'); const banners = getDB('banners');
+            if(banners.length === 0) { list.innerHTML = `<div class="text-center text-gray-400 font-bold p-4 w-full">No active banners found.</div>`; return; }
+            list.innerHTML = banners.map(b => `<div class="glass-panel p-2 relative shadow-sm border border-gray-100 bg-white"><img src="${b.imageUrl}" class="w-full h-32 object-cover rounded-xl" onerror="this.src='https://via.placeholder.com/400x200?text=Invalid+Link'"><button onclick="deleteBanner('${b.id}')" class="absolute top-4 right-4 bg-red-500 text-white w-8 h-8 rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform"><i class="fa-solid fa-trash text-sm"></i></button></div>`).join('');
+        }
+        window.deleteBanner = (id) => showConfirm('Delete this promotional banner?', () => { saveDB('banners', getDB('banners').filter(b => b.id !== id)); renderBanners(); showToast('Banner deleted'); });
+
+        // PRODUCTS (ISOLATED)
+        const pModal = document.getElementById('product-modal');
+        document.getElementById('btn-add-product').onclick = () => { document.getElementById('product-form').reset(); document.getElementById('prod-id').value = ''; document.getElementById('prod-img-preview').classList.add('hidden'); document.getElementById('upload-placeholder').classList.remove('hidden'); document.getElementById('product-modal-title').innerText = 'Add Global Product'; pModal.classList.remove('hidden'); pModal.classList.add('flex'); };
+        document.getElementById('btn-close-modal').onclick = () => { pModal.classList.add('hidden'); pModal.classList.remove('flex'); };
+        document.getElementById('prod-img-file').onchange = (e) => {
+            const f = e.target.files[0]; if(!f) return; if(f.size > 500 * 1024) return showToast('Image size must be less than 500KB', 'error');
+            const reader = new FileReader(); reader.onload = function(ev) { document.getElementById('prod-img-url').value = ev.target.result; document.getElementById('prod-img-preview').src = ev.target.result; document.getElementById('prod-img-preview').classList.remove('hidden'); document.getElementById('upload-placeholder').classList.add('hidden'); }; reader.readAsDataURL(f);
+        };
+        document.getElementById('product-form').onsubmit = (e) => {
+            e.preventDefault(); const id = document.getElementById('prod-id').value;
+            const btn = document.getElementById('btn-save-product'); const oldText = btn.innerHTML; btn.innerHTML = '<div class="loader mx-auto border-white border-t-transparent"></div>';
+            const payload = { id: id || 'prod_' + Date.now(), title: document.getElementById('prod-title').value, price: Number(document.getElementById('prod-price').value), category: document.getElementById('prod-category').value, stock: Number(document.getElementById('prod-stock').value), imageUrl: document.getElementById('prod-img-url').value || 'https://via.placeholder.com/150', global: true };
+            setTimeout(() => {
+                try { let prods = getDB('products'); if(id) { let i = prods.findIndex(p => p.id === id); if(i>-1) prods[i] = payload; } else prods.push(payload); saveDB('products', prods); showToast('Product saved successfully!'); document.getElementById('btn-close-modal').click(); renderProducts(); } catch(e) { showToast('Storage Error!', 'error'); }
+                btn.innerHTML = oldText;
+            }, 300);
+        };
+        function renderProducts() {
+            const prods = getDB('products').filter(p => p.global !== false); const list = document.getElementById('products-list-cards'); list.innerHTML = '';
+            if(!prods.length) { list.innerHTML = `<div class="text-center p-6 text-gray-400 font-bold w-full col-span-3">No global products added yet.</div>`; return; }
+            prods.forEach(d => { list.innerHTML += `<div class="glass-panel p-3 flex items-center gap-4 bg-white border border-gray-100 shadow-sm"><img src="${d.imageUrl}" class="w-14 h-14 rounded-lg object-contain bg-gray-50 border border-gray-100 p-1"><div class="flex-1"><p class="font-black text-sm text-gray-900 line-clamp-1">${d.title}</p><p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">${d.category} <span class="mx-1">•</span> <span class="text-[var(--primary)] font-black">₹${d.price}</span></p></div><div class="flex flex-col gap-1.5"><button onclick="window.editProduct('${d.id}')" class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center active:scale-95"><i class="fa-solid fa-pen text-xs"></i></button><button onclick="window.deleteProduct('${d.id}')" class="w-8 h-8 bg-red-50 text-red-500 rounded-lg flex items-center justify-center active:scale-95"><i class="fa-solid fa-trash text-xs"></i></button></div></div>`; });
+        }
+        window.editProduct = (id) => {
+            const p = getDB('products').find(x => x.id === id); if(!p) return;
+            document.getElementById('prod-id').value = id; document.getElementById('prod-title').value = p.title; document.getElementById('prod-price').value = p.price; document.getElementById('prod-category').value = p.category; document.getElementById('prod-stock').value = p.stock; document.getElementById('prod-img-url').value = p.imageUrl;
+            document.getElementById('upload-placeholder').classList.add('hidden'); document.getElementById('prod-img-preview').src = p.imageUrl; document.getElementById('prod-img-preview').classList.remove('hidden');
+            document.getElementById('product-modal-title').innerText = 'Edit Global Product'; document.getElementById('btn-add-product').click(); 
+        };
+        window.deleteProduct = (id) => showConfirm("Delete this product?", () => { saveDB('products', getDB('products').filter(p => p.id !== id)); renderProducts(); showToast('Product removed'); });
+
+        // ORDERS
+        function renderOrders() {
+            const orders = getDB('orders').reverse(); const con = document.getElementById('orders-list-cards'); con.innerHTML = '';
+            if(!orders.length) { con.innerHTML = `<div class="glass-panel p-6 text-center text-gray-400 font-bold w-full border-dashed border-2 border-gray-200">No orders received yet.</div>`; return; }
+            
+            orders.forEach(d => {
+                const itemsHtml = d.items && d.items.length > 0 ? d.items.map(i => {
+                    const varText = i.selectedPack ? i.selectedPack.name : '';
+                    return `
+                    <div class="flex items-start gap-2 bg-white p-2 rounded-lg border border-gray-100 shadow-sm mb-2">
+                        <div class="w-6 h-6 bg-blue-50 text-[var(--primary)] rounded flex items-center justify-center text-[10px] font-black shrink-0">${i.qty}x</div>
+                        <div class="flex-1"><p class="text-xs font-bold text-gray-800 leading-snug">${i.title}</p>${varText ? `<p class="text-[9px] font-bold text-gray-500 mt-0.5 uppercase tracking-wide">${varText}</p>` : ''}</div>
+                        <div class="text-xs font-black text-gray-800">₹${i.price * i.qty}</div>
+                    </div>`;
+                }).join('') : '<p class="text-xs text-gray-400 font-bold">No items found</p>';
+
+                const customerHtml = d.customerDetails ? `
+                    <div class="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                        <p class="text-sm font-black text-gray-800 mb-1">${d.customerDetails.name}</p>
+                        <p class="text-xs font-bold text-gray-600 flex items-center gap-2"><i class="fa-solid fa-phone text-gray-400"></i> ${d.customerDetails.phone}</p>
+                        <p class="text-xs font-medium text-gray-500 mt-1 flex items-start gap-2 leading-relaxed"><i class="fa-solid fa-location-dot text-gray-400 mt-0.5"></i> ${d.customerDetails.address}</p>
+                    </div>` : '<p class="text-xs text-gray-400 font-bold">No customer details</p>';
+
+                const isCancelled = d.status === 'Cancelled';
+                const statusBadge = isCancelled 
+                    ? `<span class="bg-red-100 text-red-700 px-2.5 py-1 rounded text-[9px] font-black uppercase tracking-widest border border-red-200">${d.status}</span>`
+                    : `<span class="bg-gray-100 text-gray-600 px-2.5 py-1 rounded text-[9px] font-black uppercase tracking-widest border border-gray-200">${d.status}</span>`;
+
+                const actionPanel = isCancelled ? `
+                    <div class="bg-red-50 text-red-600 border border-red-100 rounded-xl p-3 text-center h-full flex flex-col justify-center shadow-sm">
+                        <i class="fa-solid fa-ban mb-2 text-2xl"></i>
+                        <p class="text-xs font-black uppercase tracking-widest mb-1">Cancelled</p>
+                        <p class="text-[9px] font-bold text-red-500">By: ${d.cancelledBy || 'Unknown'}</p>
+                        <p class="text-[9px] font-bold text-red-400 mt-1">${d.cancelledAt || ''}</p>
+                    </div>
+                ` : `
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Update Master Status</label>
+                    <select onchange="window.updateOrderStatus('${d.id}', this.value)" class="pro-input py-3 px-4 text-xs font-bold cursor-pointer w-full bg-white shadow-sm border border-gray-200 outline-none hover:border-gray-300">
+                        <option value="Pending" ${d.status==='Pending'?'selected':''}>Pending</option>
+                        <option value="Packed" ${d.status==='Packed'?'selected':''}>Packed</option>
+                        <option value="Shipped" ${d.status==='Shipped'?'selected':''}>Shipped</option>
+                        <option value="Out for Delivery" ${d.status==='Out for Delivery'?'selected':''}>Out for Delivery</option>
+                        <option value="Delivered" ${d.status==='Delivered'?'selected':''}>Delivered</option>
+                    </select>
+                    <button onclick="window.cancelOrderAdmin('${d.id}')" class="mt-3 w-full bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all py-2.5 rounded-xl text-xs font-black border border-red-100 shadow-sm"><i class="fa-solid fa-xmark mr-1"></i> Cancel Order</button>
+                    <p class="text-[9px] text-gray-400 font-bold text-center mt-2 leading-tight">Admin has full control to override order status at any time.</p>
+                `;
+
+                con.innerHTML += `
+                <div class="glass-panel p-5 flex flex-col lg:flex-row gap-5 mb-4 border border-[var(--border-color)] bg-white shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex-1">
+                        <div class="flex flex-wrap items-center gap-2 mb-3">
+                            <span class="font-black text-sm text-[var(--text-main)]">#${d.trackingId}</span>
+                            ${statusBadge}
+                            <span class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded text-[9px] font-black uppercase tracking-widest border border-blue-100"><i class="fa-solid fa-key mr-1"></i> OTP: ${d.deliveryOtp}</span>
+                            <span class="bg-purple-50 text-purple-700 px-2.5 py-1 rounded text-[9px] font-black uppercase tracking-widest border border-purple-100"><i class="fa-solid fa-store mr-1"></i> ${d.sellerId}</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-4 mb-4 pb-3 border-b border-[var(--border-color)]">
+                            <div class="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100"><i class="fa-solid fa-wallet text-[var(--primary)] text-sm"></i> ${d.paymentMethod}</div>
+                            <div class="flex items-center gap-1.5 text-xs font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">Paid: ₹${d.total}</div>
+                            ${d.transactionId ? `<div class="flex items-center gap-1.5 text-[10px] font-bold text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100">UTR: ${d.transactionId}</div>` : ''}
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2"><i class="fa-solid fa-box-open mr-1"></i> Ordered Items</p>${itemsHtml}</div>
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2"><i class="fa-solid fa-user mr-1"></i> Customer Info</p>${customerHtml}</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2 shrink-0 w-full lg:w-48 lg:border-l lg:border-[var(--border-color)] lg:pl-5 pt-3 lg:pt-0">
+                        ${actionPanel}
+                    </div>
+                </div>`;
+            });
+        }
+        
+        window.updateOrderStatus = (id, st) => showConfirm(`Force update status to ${st}?`, () => { let o = getDB('orders'); let i = o.findIndex(x => x.id === id); if(i>-1) { o[i].status = st; saveDB('orders', o); renderOrders(); renderDashboardStats(); showToast(`Master Status Updated!`); } });
+
+        window.cancelOrderAdmin = (id) => showConfirm(`Are you sure you want to cancel this order?`, () => { 
+            let o = getDB('orders'); 
+            let i = o.findIndex(x => x.id === id); 
+            if(i>-1) { 
+                o[i].status = 'Cancelled'; 
+                o[i].cancelledBy = 'Admin'; 
+                o[i].cancelledAt = new Date().toLocaleString(); 
+                saveDB('orders', o); 
+                renderOrders(); 
+                renderDashboardStats(); 
+                showToast(`Order Cancelled Successfully!`, 'error'); 
+            } 
+        });
+
+        // SELLERS & PAYOUTS
+        function renderSellers() {
+            const sellers = getDB('sellers_profile'); const orders = getDB('orders'); const list = document.getElementById('sellers-list-cards'); list.innerHTML = '';
+            if(!sellers.length) { list.innerHTML = `<div class="text-center p-6 text-gray-400 font-bold w-full border-dashed border-2 border-gray-200 rounded-2xl">No seller requests yet.</div>`; return; }
+            sellers.forEach(s => {
+                const pendingDues = orders.filter(o => o.sellerId === s.id && o.status === 'Delivered' && !o.sellerPaid).reduce((sum, o) => sum + o.total, 0);
+                list.innerHTML += `
+                <div class="glass-panel p-5 flex flex-col justify-between bg-white border border-gray-100 shadow-sm">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-black text-base text-gray-900 mb-0.5">${s.storeName}</h4>
+                            <p class="text-xs font-bold text-gray-500 mb-1"><i class="fa-solid fa-phone text-[10px] mr-1"></i> ${s.phone}</p>
+                            ${s.upiId ? `<p class="text-[10px] font-mono text-gray-500 font-bold bg-gray-50 px-2 py-1 inline-block rounded-md border border-gray-200">${s.upiId}</p>` : ''}
+                        </div>
+                        <button onclick="window.toggleSeller('${s.id}', ${s.approved})" class="${s.approved ? 'bg-red-50 text-red-600' : 'bg-emerald-500 text-white'} px-3 py-1.5 rounded-lg text-xs font-black shadow-sm active:scale-95 transition-transform">${s.approved ? 'Revoke Access' : 'Approve Seller'}</button>
+                    </div>
+                    <div class="mt-4 border-t border-gray-100 pt-4 flex justify-between items-center bg-gray-50 -mx-5 -mb-5 p-5 rounded-b-2xl">
+                        <div class="flex flex-col">
+                            <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Pending Settlement</span>
+                            <span class="font-black text-gray-900 text-xl leading-none">₹${pendingDues.toLocaleString('en-IN')}</span>
+                        </div>
+                        ${pendingDues > 0 ? `<button onclick="window.settleSeller('${s.id}')" class="bg-blue-600 text-white px-4 py-2.5 rounded-xl text-xs font-black shadow-md hover:bg-blue-700 active:scale-95 transition-all">Settle Account <i class="fa-solid fa-check ml-1"></i></button>` : `<span class="text-xs text-gray-500 font-bold bg-white px-3 py-1.5 rounded-lg border border-gray-200"><i class="fa-solid fa-check-double text-emerald-500 mr-1"></i> Account Cleared</span>`}
+                    </div>
+                </div>`;
+            });
+        }
+        window.toggleSeller = (id, st) => showConfirm(`Are you sure you want to ${st ? 'Revoke' : 'Approve'} this seller?`, () => { let s = getDB('sellers_profile'); let i = s.findIndex(x => x.id === id); if(i>-1) { s[i].approved = !st; saveDB('sellers_profile', s); renderSellers(); renderDashboardStats(); showToast(`Seller ${!st ? 'Approved & Activated' : 'Revoked successfully'}`); } });
+        window.settleSeller = (sellerId) => { showConfirm("Mark all pending dues as PAID?", () => { let orders = getDB('orders'); orders.forEach(o => { if(o.sellerId === sellerId && o.status === 'Delivered' && !o.sellerPaid) o.sellerPaid = true; }); saveDB('orders', orders); renderSellers(); showToast('Seller Account Settled Successfully!', 'success'); }); };
+
+        // FLEET & PAYOUTS
+        function renderDelivery() {
+            const agents = getDB('delivery_profile'); const orders = getDB('orders'); const list = document.getElementById('delivery-list-cards'); list.innerHTML = '';
+            if(!agents.length) { list.innerHTML = `<div class="text-center p-8 text-gray-400 font-bold w-full col-span-2 border-dashed border-2 border-gray-200 rounded-2xl bg-white"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-motorcycle text-2xl text-gray-300"></i></div>No fleet agents registered yet.</div>`; return; }
+            agents.forEach(a => {
+                const pendingDues = orders.filter(o => o.deliveryAgentId === a.id && o.status === 'Delivered' && !o.deliveryPaid).length * 40;
+                const dot = a.isOnline ? '<div class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></div>' : '<div class="w-2 h-2 rounded-full bg-gray-300"></div>';
+                let score = a.score !== undefined ? a.score : 100;
+                let scoreColor = score >= 100 ? 'text-green-700 bg-green-100 border-green-200' : (score > 70 ? 'text-orange-700 bg-orange-100 border-orange-200' : 'text-red-700 bg-red-100 border-red-200');
+
+                list.innerHTML += `
+                <div class="glass-panel p-5 flex flex-col justify-between relative overflow-hidden bg-white border border-gray-100 shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <h4 class="font-black text-base text-gray-900">${a.name}</h4>
+                                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border ${scoreColor}">Score: ${score}</span>
+                            </div>
+                            <p class="text-xs font-bold text-gray-500">${a.phone} <span class="mx-1">•</span> <span class="font-mono text-[var(--primary)] font-black tracking-widest">${a.vehicleNumber}</span></p>
+                        </div>
+                        <div class="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-full border border-gray-100">${dot}<span class="text-[10px] font-black uppercase tracking-widest text-gray-600">${a.isOnline ? 'Online' : 'Offline'}</span></div>
+                    </div>
+                    <div class="mt-4 border-t border-gray-100 pt-4 flex justify-between items-center bg-gray-50 -mx-5 -mb-5 p-5 rounded-b-2xl">
+                        <div class="flex flex-col">
+                            <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Pending Payout</span>
+                            <span class="font-black text-[var(--primary)] text-xl leading-none">₹${pendingDues.toLocaleString('en-IN')}</span>
+                        </div>
+                        ${pendingDues > 0 ? `<button onclick="window.settleDelivery('${a.id}')" class="bg-blue-600 text-white px-4 py-2.5 rounded-xl text-xs font-black shadow-md hover:bg-blue-700 active:scale-95 transition-all">Pay Agent <i class="fa-solid fa-check ml-1"></i></button>` : `<span class="text-xs text-gray-500 font-bold bg-white px-3 py-1.5 rounded-lg border border-gray-200"><i class="fa-solid fa-check-double text-emerald-500 mr-1"></i> Cleared</span>`}
+                    </div>
+                </div>`;
+            });
+        }
+        window.settleDelivery = (agentId) => { showConfirm("Mark all pending delivery payouts as PAID?", () => { let orders = getDB('orders'); orders.forEach(o => { if(o.deliveryAgentId === agentId && o.status === 'Delivered' && !o.deliveryPaid) o.deliveryPaid = true; }); saveDB('orders', orders); renderDelivery(); showToast('Fleet Account Settled Successfully!', 'success'); }); };
+
+        checkAuth();
+    </script>
+</body>
+</html>

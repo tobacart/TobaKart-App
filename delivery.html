@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tobacart | Delivery Fleet Pro</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { 
+                        primary: '#0f766e', 
+                        secondary: '#115e59',
+                        surface: 'var(--color-surface)',
+                        background: 'var(--color-background)',
+                        content: 'var(--color-content)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --color-surface: #ffffff;
+            --color-background: #f0fdfa;
+            --color-content: #1f2937;
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--color-background); color: var(--color-content); -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { display: none; }
+        
+        .pro-card { background-color: var(--color-surface); border: 1px solid #e5e7eb; border-radius: 1.25rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .glass-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        
+        .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .slide-in { animation: slideIn 0.4s ease-out forwards; }
+        
+        @keyframes pop { 0% { transform: scale(0.95) translateY(10px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+        @keyframes slideIn { 0% { transform: translateY(100%); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+        
+        .pro-input { width: 100%; background-color: var(--color-background); border: 1px solid #d1d5db; color: var(--color-content); font-size: 0.875rem; border-radius: 0.75rem; padding: 1rem; outline: none; transition: all 0.2s; }
+        .pro-input:focus { border-color: #0f766e; box-shadow: 0 0 0 1px #0f766e; background-color: var(--color-surface); }
+        .pro-btn { width: 100%; color: #ffffff; background-color: #0f766e; font-weight: 700; border-radius: 0.75rem; padding: 1rem 1.5rem; transition: background-color 0.2s; display: flex; justify-content: center; align-items: center; gap: 0.5rem; box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.2); cursor: pointer; }
+        .pro-btn:hover { background-color: #115e59; }
+
+        .toggle-checkbox:checked { right: 0; border-color: #0f766e; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #0f766e; }
+    </style>
+</head>
+<body class="antialiased h-screen flex flex-col overflow-hidden relative">
+
+    <div id="toast-container" class="fixed top-6 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 w-11/12 max-w-md"></div>
+
+    <div id="confirm-modal" class="fixed inset-0 z-[90] hidden items-center justify-center glass-overlay px-4">
+        <div class="pro-card w-full max-w-sm p-6 animate-pop text-center">
+            <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3 class="text-xl font-bold mb-2">Confirm Action</h3>
+            <p class="text-gray-500 mb-6 text-sm" id="confirm-message">Are you sure?</p>
+            <div class="flex gap-3">
+                <button id="btn-confirm-cancel" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold">Cancel</button>
+                <button id="btn-confirm-ok" class="flex-1 bg-primary text-[var(--color-surface)] py-3 rounded-xl font-bold shadow-md">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="otp-modal" class="fixed inset-0 z-[85] hidden items-end sm:items-center justify-center glass-overlay px-4 pb-4">
+        <div class="pro-card w-full max-w-sm p-6 slide-in text-center relative border-t-4 border-primary">
+            <button id="btn-close-otp" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center hover:bg-gray-200"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="w-16 h-16 bg-teal-50 text-primary rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner"><i class="fa-solid fa-shield-check"></i></div>
+            <h3 class="text-xl font-bold mb-1">Secure Delivery</h3>
+            <p class="text-gray-500 mb-6 text-sm">Ask the customer for the 4-digit Delivery OTP.</p>
+            
+            <input type="text" id="delivery-otp-input" maxlength="4" placeholder="••••" class="w-full bg-[var(--color-background)] border-2 border-gray-200 text-center text-4xl tracking-[0.5em] font-mono rounded-xl p-4 outline-none focus:border-primary mb-4 transition-all">
+            <button id="btn-verify-otp" class="pro-btn text-lg">Verify & Mark Delivered</button>
+        </div>
+    </div>
+
+    <div id="auth-view" class="absolute inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-[var(--color-background)]">
+        <div class="w-full max-w-md">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-primary text-[var(--color-surface)] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-teal-700/30"><i class="fa-solid fa-motorcycle text-4xl"></i></div>
+                <h1 class="text-3xl font-extrabold tracking-tight">Fleet Command</h1>
+                <p class="text-sm mt-2 font-medium text-gray-500">Tobacart Delivery Partner Portal</p>
+            </div>
+
+            <div class="pro-card p-8 shadow-xl">
+                <form id="login-form" class="space-y-4">
+                    <input type="text" id="login-phone" placeholder="Registered Phone Number" required class="pro-input">
+                    <input type="password" id="login-pass" placeholder="Password" required class="pro-input">
+                    <button type="submit" class="pro-btn mt-2">Login to Fleet</button>
+                    <div id="auth-error-msg" class="hidden mt-2 bg-red-50 text-red-600 p-3 rounded-lg text-xs font-bold border border-red-100 text-center"></div>
+                </form>
+
+                <form id="register-form" class="space-y-4 hidden">
+                    <input type="text" id="reg-name" placeholder="Full Name" required class="pro-input">
+                    <input type="text" id="reg-phone" placeholder="Phone Number" required class="pro-input">
+                    <input type="text" id="reg-vehicle" placeholder="Vehicle Number (e.g. GJ-05-AB-1234)" required class="pro-input uppercase font-mono">
+                    <input type="password" id="reg-pass" placeholder="Create Password" required class="pro-input">
+                    <button type="submit" class="pro-btn mt-2">Register Vehicle</button>
+                </form>
+            </div>
+            
+            <div class="text-center mt-6">
+                <p id="toggle-text-login" class="text-sm font-semibold text-gray-500">New Agent? <a href="#" id="toggle-register" class="text-primary hover:underline">Apply Now</a></p>
+                <p id="toggle-text-register" class="text-sm font-semibold text-gray-500 hidden">Already registered? <a href="#" id="toggle-login" class="text-primary hover:underline">Sign In</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-view" class="hidden flex-col h-full w-full max-w-md mx-auto bg-[var(--color-background)] relative shadow-2xl border-x border-gray-200">
+        
+        <header class="bg-[var(--color-surface)] px-6 py-4 flex justify-between items-center z-10 sticky top-0 rounded-b-3xl shadow-sm border-b border-gray-100">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-primary text-[var(--color-surface)] rounded-full flex items-center justify-center shadow-md"><i class="fa-solid fa-helmet-safety"></i></div>
+                <div>
+                    <h1 class="text-lg font-extrabold leading-tight">My Shifts</h1>
+                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest" id="header-agent-name">Agent</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider" id="status-text">OFFLINE</span>
+                <div class="relative inline-block w-10 mr-1 align-middle select-none transition duration-200 ease-in">
+                    <input type="checkbox" name="toggle" id="status-toggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-[var(--color-surface)] border-4 appearance-none cursor-pointer transition-all duration-300 z-10"/>
+                    <label for="status-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300"></label>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto pb-24 relative p-4">
+            
+            <section id="sec-jobboard" class="animate-pop block">
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-xl font-extrabold">Available Jobs</h2>
+                    <span class="bg-teal-50 text-primary border border-teal-100 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2 shadow-sm"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span></span> Searching</span>
+                </div>
+                <div id="status-warning" class="hidden pro-card p-4 border-l-4 border-orange-500 mb-4 bg-orange-50"><p class="text-sm font-bold text-orange-700"><i class="fa-solid fa-bell mr-1"></i> You are currently offline. Go online to view delivery requests.</p></div>
+                <div id="job-list" class="space-y-4"></div>
+            </section>
+
+            <section id="sec-route" class="hidden">
+                <h2 class="text-xl font-extrabold mb-5">Active Route</h2>
+                <div id="route-list" class="space-y-5"></div>
+            </section>
+
+            <section id="sec-earnings" class="hidden">
+                <h2 class="text-xl font-extrabold mb-5">Earnings Dashboard</h2>
+                <div class="pro-card p-8 text-center bg-gradient-to-br from-primary to-secondary text-[var(--color-surface)] relative overflow-hidden mb-6 shadow-lg">
+                    <i class="fa-solid fa-wallet absolute -right-4 -bottom-8 text-8xl opacity-10 transform -rotate-12"></i>
+                    <p class="text-teal-100 font-bold uppercase tracking-widest text-xs mb-2">Unpaid Dues</p>
+                    <h3 class="text-5xl font-extrabold mb-5" id="total-earnings-display">₹0</h3>
+                    <div class="inline-block bg-[var(--color-surface)] text-primary px-5 py-2 rounded-full text-sm font-extrabold shadow-sm"><i class="fa-solid fa-box-check mr-1"></i> <span id="total-delivered-display">0</span> Successful Deliveries</div>
+                </div>
+                <div class="pro-card p-5 flex items-center gap-4 bg-[var(--color-surface)]">
+                    <div class="w-12 h-12 bg-teal-50 text-primary rounded-full flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-bolt"></i></div>
+                    <div><h4 class="font-bold text-lg">Fixed Payout Rate</h4><p class="text-sm text-gray-500 font-medium">You earn exactly <b class="text-primary">₹40</b> per successful drop-off.</p></div>
+                </div>
+            </section>
+
+            <section id="sec-rules" class="hidden">
+                <h2 class="text-xl font-extrabold mb-5">Fleet Guidelines</h2>
+                <div class="pro-card p-5 space-y-6 bg-[var(--color-surface)]">
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-xl"><i class="fa-solid fa-star"></i></div>
+                        <div><h3 class="font-bold text-base text-[var(--color-content)]">Trust Score & SLA</h3><p class="text-xs text-gray-500 mt-1 leading-relaxed">You start with 100 points. Deliver within 48 hours to earn <b>+5 Points</b>. Late deliveries (over 48 hours) will incur a <b>-10 Points</b> penalty.</p></div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 text-xl"><i class="fa-solid fa-wallet"></i></div>
+                        <div><h3 class="font-bold text-base text-[var(--color-content)]">Payouts & Earnings</h3><p class="text-xs text-gray-500 mt-1 leading-relaxed">You earn a fixed <b>₹40 per successful delivery</b>. Your unpaid dues are tracked securely in the Earnings tab.</p></div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center shrink-0 text-xl"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                        <div><h3 class="font-bold text-base text-[var(--color-content)]">Cash Collection (COD)</h3><p class="text-xs text-gray-500 mt-1 leading-relaxed">Collect cash <b>only for COD orders</b>. Do not ask for money if the order is marked as PREPAID.</p></div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 text-xl"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div><h3 class="font-bold text-base text-[var(--color-content)]">Secure OTP Delivery</h3><p class="text-xs text-gray-500 mt-1 leading-relaxed">Never handover a package without verifying the 4-digit Delivery OTP from the customer.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="sec-profile" class="hidden">
+                <h2 class="text-xl font-extrabold mb-5">Agent Profile</h2>
+                <div class="pro-card p-6 space-y-5 bg-[var(--color-surface)]">
+                    <div class="bg-gray-50 border border-gray-100 rounded-2xl p-5 text-center mb-6 shadow-inner">
+                        <p class="text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-1">Trust Score (SLA)</p>
+                        <h2 class="text-4xl font-black text-primary" id="prof-score-display">100</h2>
+                        <p class="text-[10px] text-gray-500 font-bold mt-2">Score drops if delivery takes > 2 days.</p>
+                    </div>
+                    <div><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Full Name</label><input type="text" id="prof-name" disabled class="pro-input font-extrabold text-lg !bg-gray-50 cursor-not-allowed"></div>
+                    <div><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Registered Phone</label><input type="text" id="prof-phone" disabled class="pro-input font-bold !bg-gray-50 cursor-not-allowed"></div>
+                    <div><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Registered Vehicle</label><input type="text" id="prof-vehicle" disabled class="pro-input font-mono text-primary font-extrabold tracking-widest !bg-teal-50 border-teal-100 cursor-not-allowed text-center"></div>
+                    <button id="btn-logout" class="w-full bg-red-50 text-red-600 hover:bg-red-100 font-bold py-4 rounded-xl mt-6 border border-red-100 transition-colors shadow-sm">Sign Out Securely</button>
+                </div>
+            </section>
+
+        </main>
+
+        <nav class="bg-[var(--color-surface)] fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md flex justify-between p-2 pb-5 z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] border-t border-gray-100">
+            <button class="nav-btn flex-1 flex flex-col items-center gap-1 text-primary pt-2 font-bold" data-target="jobboard"><i class="fa-solid fa-satellite-dish text-xl mb-1"></i><span class="text-[10px] tracking-wide">Jobs</span></button>
+            <button class="nav-btn flex-1 flex flex-col items-center gap-1 text-gray-400 hover:text-gray-900 pt-2 font-bold relative transition-colors" data-target="route"><i class="fa-solid fa-route text-xl mb-1"></i><span class="text-[10px] tracking-wide">Route</span><span id="route-badge" class="absolute top-1 right-3 w-3 h-3 bg-red-500 rounded-full border-2 border-[var(--color-surface)] hidden"></span></button>
+            <button class="nav-btn flex-1 flex flex-col items-center gap-1 text-gray-400 hover:text-gray-900 pt-2 font-bold transition-colors" data-target="earnings"><i class="fa-solid fa-wallet text-xl mb-1"></i><span class="text-[10px] tracking-wide">Earnings</span></button>
+            <button class="nav-btn flex-1 flex flex-col items-center gap-1 text-gray-400 hover:text-gray-900 pt-2 font-bold transition-colors" data-target="rules"><i class="fa-solid fa-file-contract text-xl mb-1"></i><span class="text-[10px] tracking-wide">Rules</span></button>
+            <button class="nav-btn flex-1 flex flex-col items-center gap-1 text-gray-400 hover:text-gray-900 pt-2 font-bold transition-colors" data-target="profile"><i class="fa-solid fa-helmet-safety text-xl mb-1"></i><span class="text-[10px] tracking-wide">Profile</span></button>
+        </nav>
+    </div>
+
+    <!-- 🔥 MYSQL DATABASE CONNECTION SCRIPT 🔥 -->
+    <script>
+        // 🔥 PROFESSIONAL FIREBASE CONFIGURATION 🔥
+        const firebaseConfig = {
+            apiKey: "AIzaSyABbMfeWlgf40q4Lu8PeBADB-ta-hJWeUU",
+            authDomain: "tobacart-cefc5.firebaseapp.com",
+            databaseURL: "https://tobacart-cefc5-default-rtdb.firebaseio.com",
+            projectId: "tobacart-cefc5",
+            storageBucket: "tobacart-cefc5.firebasestorage.app",
+            messagingSenderId: "492221338733",
+            appId: "1:492221338733:web:594c91ca38c85bfd711b64"
+        };
+
+        // Firebase REST API Base URL
+        const FIREBASE_URL = firebaseConfig.databaseURL + "/";
+
+        // 🚀 Master Data Fetcher (Synchronous & Fast)
+        function getDB(col) {
+            try {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', FIREBASE_URL + 'tobacart_' + col + '.json', false); 
+                xhr.send(null);
+                if (xhr.status === 200 && xhr.responseText && xhr.responseText !== "null") {
+                    return JSON.parse(xhr.responseText);
+                }
+            } catch(e) { console.error("Database Fetch Error:", e); }
+            return [];
+        }
+
+        // 🚀 Master Data Saver (Live to Firebase)
+        function saveDB(col, data) {
+            try {
+                localStorage.setItem('tobacart_' + col, JSON.stringify(data)); 
+                
+                var xhr = new XMLHttpRequest();
+                xhr.open('PUT', FIREBASE_URL + 'tobacart_' + col + '.json', true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.send(JSON.stringify(data));
+            } catch(e) { console.error("Database Save Error:", e); }
+        }
+
+
+        let currentAgent = JSON.parse(localStorage.getItem('tobacart_delivery_auth'));
+        let activeOrderIdForOtp = null;
+        const EARNING_PER_ORDER = 40; 
+
+        function showToast(msg, type = 'success') {
+            const t = document.createElement('div');
+            t.className = `pro-card bg-[var(--color-surface)] flex items-center gap-3 p-4 shadow-xl slide-in border-l-4 ${type==='error'?'border-red-500':'border-primary'}`;
+            t.innerHTML = `<span class="font-bold text-sm text-gray-800">${msg}</span>`;
+            document.getElementById('toast-container').appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 2500); }, 2500);
+        }
+
+        function showConfirm(msg, onConfirm) {
+            const m = document.getElementById('confirm-modal'); document.getElementById('confirm-message').innerText = msg;
+            m.classList.remove('hidden'); m.classList.add('flex');
+            const okBtn = document.getElementById('btn-confirm-ok'); const newOk = okBtn.cloneNode(true); okBtn.parentNode.replaceChild(newOk, okBtn);
+            newOk.onclick = () => { m.classList.add('hidden'); onConfirm(); };
+            document.getElementById('btn-confirm-cancel').onclick = () => m.classList.add('hidden');
+        }
+
+        const authView = document.getElementById('auth-view'); const appView = document.getElementById('app-view');
+        document.getElementById('toggle-register').onclick = (e) => { e.preventDefault(); document.getElementById('login-form').classList.add('hidden'); document.getElementById('register-form').classList.remove('hidden'); document.getElementById('auth-error-msg').classList.add('hidden'); document.getElementById('toggle-text-login').classList.add('hidden'); document.getElementById('toggle-text-register').classList.remove('hidden'); };
+        document.getElementById('toggle-login').onclick = (e) => { e.preventDefault(); document.getElementById('register-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); document.getElementById('auth-error-msg').classList.add('hidden'); document.getElementById('toggle-text-register').classList.add('hidden'); document.getElementById('toggle-text-login').classList.remove('hidden'); };
+
+        document.getElementById('register-form').onsubmit = (e) => {
+            e.preventDefault(); const phone = document.getElementById('reg-phone').value;
+            let agents = getDB('delivery_profile');
+            if(agents.find(a => a.phone === phone)) return showToast('Phone already registered', 'error');
+
+            const newAgent = { id: 'del_'+Date.now(), name: document.getElementById('reg-name').value, phone, vehicleNumber: document.getElementById('reg-vehicle').value.toUpperCase(), pass: document.getElementById('reg-pass').value, isOnline: false, score: 100 };
+            agents.push(newAgent); saveDB('delivery_profile', agents);
+            currentAgent = newAgent; localStorage.setItem('tobacart_delivery_auth', JSON.stringify(newAgent));
+            checkAuth(); showToast('Registration Successful!');
+        };
+
+        document.getElementById('login-form').onsubmit = (e) => {
+            e.preventDefault(); document.getElementById('auth-error-msg').classList.add('hidden');
+            const agent = getDB('delivery_profile').find(a => a.phone === document.getElementById('login-phone').value && a.pass === document.getElementById('login-pass').value);
+            if(agent) { currentAgent = agent; localStorage.setItem('tobacart_delivery_auth', JSON.stringify(agent)); checkAuth(); showToast('Welcome back, Partner!'); } 
+            else { document.getElementById('auth-error-msg').innerText = "Invalid credentials"; document.getElementById('auth-error-msg').classList.remove('hidden'); }
+        };
+
+        document.getElementById('btn-logout').onclick = () => showConfirm("End shift and log out?", () => { updateOnlineStatus(false); localStorage.removeItem('tobacart_delivery_auth'); currentAgent = null; checkAuth(); });
+
+        function checkAuth() {
+            if(currentAgent) {
+                const freshAgent = getDB('delivery_profile').find(a => a.id === currentAgent.id); if(freshAgent) currentAgent = freshAgent;
+                authView.classList.add('hidden'); appView.classList.remove('hidden'); appView.classList.add('flex');
+                document.getElementById('header-agent-name').innerText = currentAgent.name.split(' ')[0];
+                document.getElementById('status-toggle').checked = currentAgent.isOnline;
+                document.getElementById('status-text').innerText = currentAgent.isOnline ? 'ONLINE' : 'OFFLINE';
+                document.getElementById('status-text').className = currentAgent.isOnline ? 'text-[10px] font-extrabold uppercase tracking-wider text-primary' : 'text-[10px] font-extrabold uppercase tracking-wider text-gray-400';
+                initApp();
+            } else { authView.classList.remove('hidden'); appView.classList.add('hidden'); appView.classList.remove('flex'); }
+        }
+
+        document.getElementById('status-toggle').addEventListener('change', (e) => updateOnlineStatus(e.target.checked));
+        function updateOnlineStatus(isOnline) {
+            let agents = getDB('delivery_profile'); let idx = agents.findIndex(a => a.id === currentAgent.id);
+            if(idx > -1) {
+                agents[idx].isOnline = isOnline; saveDB('delivery_profile', agents); currentAgent.isOnline = isOnline;
+                document.getElementById('status-text').innerText = isOnline ? 'ONLINE' : 'OFFLINE';
+                document.getElementById('status-text').className = isOnline ? 'text-[10px] font-extrabold uppercase tracking-wider text-primary' : 'text-[10px] font-extrabold uppercase tracking-wider text-gray-400';
+                renderJobBoard(); if(isOnline) showToast("You are now Online and visible for jobs.");
+            }
+        }
+
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('text-primary'); b.classList.add('text-gray-400'); });
+                e.currentTarget.classList.remove('text-gray-400'); e.currentTarget.classList.add('text-primary');
+                document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+                document.getElementById(`sec-${e.currentTarget.dataset.target}`).classList.remove('hidden'); document.getElementById(`sec-${e.currentTarget.dataset.target}`).classList.add('animate-pop');
+                if(e.currentTarget.dataset.target === 'jobboard') renderJobBoard(); 
+                if(e.currentTarget.dataset.target === 'route') renderRoute(); 
+                if(e.currentTarget.dataset.target === 'earnings') renderEarnings(); 
+                if(e.currentTarget.dataset.target === 'profile') renderProfile();
+            });
+        });
+
+        function initApp() { renderJobBoard(); updateRouteBadge(); }
+
+        function renderJobBoard() {
+            const list = document.getElementById('job-list'); const warn = document.getElementById('status-warning');
+            if(!currentAgent.isOnline) { list.innerHTML = ''; warn.classList.remove('hidden'); return; } else { warn.classList.add('hidden'); }
+
+            const jobs = getDB('orders').filter(o => o.status === 'Handed Over' || o.status === 'Shipped').reverse();
+            if(jobs.length === 0) { list.innerHTML = `<div class="pro-card text-center py-16 text-gray-400 border-dashed"><i class="fa-solid fa-mug-hot text-4xl mb-4 opacity-30"></i><p class="font-bold text-sm">No active delivery requests right now.</p></div>`; return; }
+
+            const sellers = getDB('sellers_profile');
+
+            list.innerHTML = jobs.map(job => {
+                const seller = sellers.find(s => s.id === job.sellerId) || { storeName: 'Platform Warehouse', shopAddress: 'Central Hub' };
+                const payTag = job.paymentMethod === 'ONLINE' ? `<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-1 rounded text-[10px] font-extrabold tracking-wider"><i class="fa-solid fa-qrcode mr-1"></i> PREPAID</span>` : `<span class="bg-orange-50 text-orange-700 border border-orange-200 px-2 py-1 rounded text-[10px] font-extrabold tracking-wider"><i class="fa-solid fa-money-bill-wave mr-1"></i> COD: ₹${job.total}</span>`;
+
+                return `
+                <div class="pro-card p-5 shadow-sm">
+                    <div class="flex justify-between items-start mb-4 border-b border-gray-100 pb-3">
+                        <div><span class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">Order ID</span><p class="font-bold text-gray-900">#${job.trackingId}</p></div>
+                        <div class="text-right flex flex-col items-end gap-1"><p class="text-xl font-black text-gray-900">₹${job.total}</p>${payTag}</div>
+                    </div>
+                    <div class="relative pl-6 mb-5 space-y-4 before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200">
+                        <div class="relative">
+                            <div class="absolute -left-6 top-0 w-4 h-4 rounded-full bg-violet-100 border-2 border-violet-500 flex items-center justify-center z-10"></div>
+                            <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest mb-0.5">Pickup Point</p>
+                            <p class="text-sm font-bold text-gray-900 leading-tight">${seller.storeName}</p>
+                            <p class="text-xs font-medium text-gray-500 line-clamp-1 mt-0.5">${seller.shopAddress}</p>
+                        </div>
+                        <div class="relative">
+                            <div class="absolute -left-6 top-0 w-4 h-4 rounded-full bg-red-100 border-2 border-red-500 flex items-center justify-center z-10"></div>
+                            <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest mb-0.5">Drop-off Point</p>
+                            <p class="text-sm font-bold text-gray-900 leading-tight line-clamp-2">${job.customerDetails.address}</p>
+                        </div>
+                    </div>
+                    <button onclick="window.acceptJob('${job.id}')" class="pro-btn text-sm py-3.5 shadow-md">Accept Delivery Job</button>
+                </div>`;
+            }).join('');
+        }
+
+        window.acceptJob = (id) => showConfirm("Accept this order for delivery?", () => {
+            let o = getDB('orders'); let i = o.findIndex(x => x.id === id);
+            if(i > -1) { 
+                o[i].status = 'Out for Delivery'; 
+                o[i].deliveryAgentId = currentAgent.id; 
+                o[i].acceptedAt = Date.now();
+                saveDB('orders', o); 
+                showToast('Job Accepted! Check My Route.'); 
+                renderJobBoard(); updateRouteBadge(); document.querySelector('[data-target="route"]').click(); 
+            }
+        });
+
+        function updateRouteBadge() {
+            const badge = document.getElementById('route-badge');
+            if(getDB('orders').filter(o => o.deliveryAgentId === currentAgent.id && o.status === 'Out for Delivery').length > 0) badge.classList.remove('hidden'); else badge.classList.add('hidden');
+        }
+
+        function renderRoute() {
+            updateRouteBadge(); const list = document.getElementById('route-list');
+            const jobs = getDB('orders').filter(o => o.deliveryAgentId === currentAgent.id && o.status === 'Out for Delivery').reverse();
+            if(!jobs.length) { list.innerHTML = `<div class="pro-card text-center py-16 text-gray-400 border-dashed"><i class="fa-solid fa-route text-4xl mb-4 opacity-30"></i><p class="font-bold text-sm">Your active route is empty.</p></div>`; return; }
+
+            const sellers = getDB('sellers_profile');
+
+            list.innerHTML = jobs.map(job => {
+                const seller = sellers.find(s => s.id === job.sellerId) || { storeName: 'Platform Warehouse', shopAddress: 'Central Hub' };
+                const collectAlert = job.paymentMethod === 'ONLINE' ? `<div class="bg-green-50 border-2 border-green-200 text-green-700 p-3 rounded-xl mb-4 text-center font-extrabold text-sm"><i class="fa-solid fa-check-circle mr-1"></i> PREPAID ORDER - DO NOT COLLECT CASH</div>` : `<div class="bg-orange-50 border-2 border-orange-400 text-orange-700 p-4 rounded-xl mb-4 text-center font-black text-lg animate-pulse shadow-sm"><i class="fa-solid fa-hand-holding-dollar mr-2 text-2xl align-middle"></i>COLLECT CASH: ₹${job.total}</div>`;
+
+                return `
+                <div class="pro-card p-5 relative overflow-hidden border-2 border-primary/20 shadow-md">
+                    <div class="absolute top-0 right-0 bg-primary text-[var(--color-surface)] text-[10px] font-extrabold px-3 py-1 rounded-bl-xl tracking-widest uppercase">Active Route</div>
+                    <div class="mb-4 pt-1 border-b border-gray-100 pb-3"><span class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">Order Total</span><h3 class="text-3xl font-black text-gray-900">₹${job.total}</h3></div>
+                    ${collectAlert}
+                    <div class="bg-[var(--color-background)] border border-[var(--border-color)] p-3 rounded-xl mb-3">
+                        <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest mb-1">Pickup Point</p>
+                        <p class="text-sm font-bold text-gray-900">${seller.storeName}</p><p class="text-xs font-medium text-gray-500 line-clamp-1">${seller.shopAddress}</p>
+                    </div>
+                    <div class="bg-blue-50/50 border border-blue-100 p-4 rounded-xl mb-5 shadow-sm">
+                        <div class="flex justify-between items-center mb-2"><span class="font-bold text-gray-900"><i class="fa-solid fa-user text-blue-500 mr-2"></i>${job.customerDetails.name}</span><a href="tel:${job.customerDetails.phone}" class="bg-blue-500 text-white w-9 h-9 rounded-full flex items-center justify-center shadow-md hover:bg-blue-600 transition-colors"><i class="fa-solid fa-phone"></i></a></div>
+                        <p class="text-sm text-gray-600 font-medium leading-relaxed"><i class="fa-solid fa-location-dot text-gray-400 mr-2"></i>${job.customerDetails.address}</p>
+                    </div>
+                    <button onclick="window.initiateDelivery('${job.id}')" class="pro-btn py-4 text-base shadow-lg">Mark as Delivered <i class="fa-solid fa-circle-check ml-1"></i></button>
+                </div>`;
+            }).join('');
+        }
+
+        window.initiateDelivery = (id) => { activeOrderIdForOtp = id; document.getElementById('delivery-otp-input').value = ''; document.getElementById('otp-modal').classList.remove('hidden'); document.getElementById('otp-modal').classList.add('flex'); setTimeout(() => document.getElementById('delivery-otp-input').focus(), 100); };
+        document.getElementById('btn-close-otp').onclick = () => { document.getElementById('otp-modal').classList.add('hidden'); activeOrderIdForOtp = null; };
+
+        document.getElementById('btn-verify-otp').onclick = () => {
+            const inputOtp = document.getElementById('delivery-otp-input').value;
+            if(inputOtp.length !== 4) return showToast('Enter valid 4-digit OTP', 'error');
+            
+            let orders = getDB('orders'); 
+            let idx = orders.findIndex(o => o.id === activeOrderIdForOtp);
+            
+            if(idx > -1) {
+                if(orders[idx].deliveryOtp === inputOtp) {
+                    orders[idx].status = 'Delivered'; 
+                    orders[idx].deliveredAt = Date.now();
+                    saveDB('orders', orders); 
+                    
+                    let acceptedTime = orders[idx].acceptedAt || (Date.now() - (1000 * 60 * 60 * 24));
+                    let daysTaken = (orders[idx].deliveredAt - acceptedTime) / (1000 * 60 * 60 * 24);
+                    
+                    let agents = getDB('delivery_profile');
+                    let aIdx = agents.findIndex(a => a.id === currentAgent.id);
+                    if(aIdx > -1) {
+                        let score = agents[aIdx].score !== undefined ? agents[aIdx].score : 100;
+                        if(daysTaken > 2) {
+                            score -= 10;
+                            showToast('Late Delivery (>2 Days). Score decreased by 10.', 'error');
+                        } else {
+                            score += 5;
+                            showToast('Fast Delivery! +5 Score & ₹40 added to earnings.');
+                        }
+                        agents[aIdx].score = score;
+                        saveDB('delivery_profile', agents);
+                        currentAgent = agents[aIdx];
+                        localStorage.setItem('tobacart_delivery_auth', JSON.stringify(currentAgent));
+                    }
+
+                    document.getElementById('otp-modal').classList.add('hidden'); 
+                    activeOrderIdForOtp = null; 
+                    renderRoute();
+                } else { 
+                    showToast('Invalid OTP! Please verify with customer.', 'error'); 
+                    document.getElementById('delivery-otp-input').value = ''; 
+                }
+            }
+        };
+
+        function renderEarnings() {
+            const deliveredOrders = getDB('orders').filter(o => o.deliveryAgentId === currentAgent.id && o.status === 'Delivered' && !o.deliveryPaid);
+            const pendingDues = deliveredOrders.length * EARNING_PER_ORDER;
+            const allTimeDeliveredCount = getDB('orders').filter(o => o.deliveryAgentId === currentAgent.id && o.status === 'Delivered').length;
+            document.getElementById('total-delivered-display').innerText = allTimeDeliveredCount; 
+            document.getElementById('total-earnings-display').innerText = `₹${pendingDues.toLocaleString('en-IN')}`;
+        }
+
+        function renderProfile() {
+            document.getElementById('prof-name').value = currentAgent.name; 
+            document.getElementById('prof-phone').value = currentAgent.phone; 
+            document.getElementById('prof-vehicle').value = currentAgent.vehicleNumber;
+            
+            let score = currentAgent.score !== undefined ? currentAgent.score : 100;
+            let display = document.getElementById('prof-score-display');
+            display.innerText = score;
+            display.className = score >= 100 ? 'text-4xl font-black text-green-600' : (score > 70 ? 'text-4xl font-black text-orange-500' : 'text-4xl font-black text-red-600');
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>

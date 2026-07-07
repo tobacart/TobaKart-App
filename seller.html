@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tobacart | Seller Central Pro</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { primary: '#10b981', secondary: '#047857', accent: '#0f766e', dark: '#0f172a' },
+                    boxShadow: { 'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.04)', 'glow': '0 10px 25px -5px rgba(16, 185, 129, 0.4)' }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root { --bg-body: #f8fafc; --bg-surface: #ffffff; --text-main: #0f172a; --text-muted: #64748b; --border-color: #e2e8f0; --primary: #10b981; --secondary: #047857; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); color: var(--text-main); -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        ::-webkit-scrollbar { display: none; } .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .pro-card { background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 1.5rem; box-shadow: var(--tw-shadow-soft); transition: transform 0.2s ease, box-shadow 0.2s ease; transform: translateZ(0); }
+        .pro-card:hover { box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        
+        .glass-nav { background: rgba(255, 255, 255, 0.98); border-bottom: 1px solid var(--border-color); }
+        .glass-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(6px); }
+        
+        .slide-in-bottom { animation: slideInBottom 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .fade-in { animation: fadeIn 0.2s ease-out forwards; }
+        
+        @keyframes slideInBottom { 0% { transform: translateY(100%); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeIn { 0% { opacity: 0; transform: scale(0.98); } 100% { transform: scale(1); } }
+        
+        .loader { border: 2px solid var(--border-color); border-top: 2px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .pro-input { width: 100%; background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-main); font-size: 0.875rem; border-radius: 1rem; padding: 0.875rem 1.25rem; outline: none; transition: all 0.2s ease; font-weight: 500; }
+        .pro-input:focus { border-color: var(--primary); background-color: var(--bg-surface); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+        .pro-label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem; letter-spacing: 0.05em; }
+        
+        .pro-btn { width: 100%; color: #ffffff !important; background: linear-gradient(135deg, var(--primary), var(--secondary)) !important; font-weight: 700; border-radius: 1rem; padding: 1rem 1.5rem; transition: all 0.3s ease; display: flex; justify-content: center; align-items: center; gap: 0.5rem; cursor: pointer; border: none; box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4); }
+        .pro-btn:active { transform: translateY(1px); }
+
+        .wallet-card { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; position: relative; overflow: hidden; }
+    </style>
+</head>
+<body class="antialiased relative min-h-screen">
+
+    <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 w-full max-w-xs px-4 md:px-0 pointer-events-none"></div>
+
+    <div id="confirm-modal" class="fixed inset-0 z-[90] hidden items-center justify-center glass-overlay px-4">
+        <div class="pro-card w-full max-w-sm p-8 fade-in text-center border-0 shadow-2xl">
+            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 text-2xl shadow-inner"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3 class="text-xl font-extrabold mb-2 text-[var(--text-main)]" id="confirm-title">Confirm Action</h3>
+            <p class="text-[var(--text-muted)] mb-8 text-sm font-medium" id="confirm-message">Are you sure you want to proceed?</p>
+            <div class="flex gap-3">
+                <button id="btn-confirm-cancel" class="flex-1 bg-gray-50 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors">Cancel</button>
+                <button id="btn-confirm-ok" class="flex-1 bg-red-500 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-red-600 transition-colors">Proceed</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUTH VIEW -->
+    <div id="auth-view" class="min-h-screen flex flex-col justify-center items-center p-4 w-full bg-[var(--bg-body)] absolute inset-0 z-50">
+        <div class="w-full max-w-md my-auto fade-in">
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-secondary text-white rounded-2xl mb-5 shadow-glow"><i class="fa-solid fa-store text-3xl"></i></div>
+                <h1 class="text-4xl font-black tracking-tight text-[var(--text-main)] mb-2">Tobacart Seller</h1>
+                <p class="text-sm font-medium text-[var(--text-muted)]">Empowering your business growth.</p>
+            </div>
+
+            <div class="pro-card p-8 border-0 shadow-sm border border-gray-100">
+                <form id="login-form" class="space-y-5">
+                    <div><label class="pro-label">Registered Phone</label><input type="text" id="login-phone" placeholder="Enter phone number" required class="pro-input"></div>
+                    <div><label class="pro-label">Password</label><input type="password" id="login-pass" placeholder="Enter password" required class="pro-input"></div>
+                    <div class="pt-4"><button type="submit" class="pro-btn">Access Dashboard <i class="fa-solid fa-arrow-right ml-1"></i></button></div>
+                    <div id="auth-error-msg" class="hidden mt-4 bg-red-50 text-red-600 p-3 rounded-xl text-xs font-bold border border-red-100 flex items-start gap-2"><i class="fa-solid fa-circle-exclamation mt-0.5"></i> <span id="auth-error-text"></span></div>
+                </form>
+
+                <form id="register-form" class="space-y-5 hidden">
+                    <div><label class="pro-label">Store Name</label><input type="text" id="reg-store" placeholder="e.g. Matel Pan" required class="pro-input"></div>
+                    <div><label class="pro-label">Contact Number</label><input type="text" id="reg-phone" placeholder="10-digit mobile number" required class="pro-input"></div>
+                    <div><label class="pro-label">Pickup Address</label><textarea id="reg-address" placeholder="Complete shop address with pincode" required class="pro-input resize-none h-20"></textarea></div>
+                    <div><label class="pro-label">Create Password</label><input type="password" id="reg-pass" placeholder="Secure password" required class="pro-input"></div>
+                    <div class="pt-4"><button type="submit" class="pro-btn">Submit Application</button></div>
+                </form>
+            </div>
+            
+            <div class="text-center mt-8 pb-8">
+                <p id="toggle-text-login" class="text-sm font-medium text-[var(--text-muted)]">Want to sell with us? <a href="#" id="toggle-register" class="text-primary font-bold hover:underline">Apply Now</a></p>
+                <p id="toggle-text-register" class="text-sm hidden font-medium text-[var(--text-muted)]">Already a verified seller? <a href="#" id="toggle-login" class="text-primary font-bold hover:underline">Sign In</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP VIEW -->
+    <div id="app-view" class="hidden min-h-screen w-full flex-col md:flex-row bg-[var(--bg-body)]">
+        
+        <nav class="w-64 h-screen sticky top-0 flex-col justify-between z-20 shrink-0 hidden md:flex bg-[var(--bg-surface)] border-r border-[var(--border-color)]">
+            <div>
+                <div class="flex items-center gap-3 px-6 py-8 border-b border-[var(--border-color)] mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary text-white rounded-xl flex items-center justify-center shadow-glow"><i class="fa-solid fa-store text-xl"></i></div>
+                    <div>
+                        <h2 class="font-extrabold text-base leading-tight line-clamp-1 text-[var(--text-main)]" id="nav-store-name">Store Name</h2>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-primary">Verified Partner</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2 px-4">
+                    <button class="nav-btn active w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all bg-emerald-50 text-primary" data-target="dashboard"><i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard</button>
+                    <button class="nav-btn w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all hover:bg-gray-50 text-[var(--text-muted)]" data-target="products"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> Inventory</button>
+                    <button class="nav-btn w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all hover:bg-gray-50 text-[var(--text-muted)] relative" data-target="orders"><i class="fa-solid fa-receipt w-5 text-center"></i> Orders <span id="nav-badge-orders" class="absolute right-3 bg-red-500 text-white text-[9px] px-2 py-0.5 rounded-full hidden">NEW</span></button>
+                    <button class="nav-btn w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all hover:bg-gray-50 text-[var(--text-muted)]" data-target="profile"><i class="fa-solid fa-gear w-5 text-center"></i> Settings</button>
+                </div>
+            </div>
+            <div class="p-6 border-t border-[var(--border-color)]">
+                <button id="btn-logout-desktop" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold bg-red-50 text-red-600 hover:bg-red-100 transition-colors"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out</button>
+            </div>
+        </nav>
+
+        <header class="md:hidden sticky top-0 z-30 glass-nav px-5 py-4 flex justify-between items-center shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-gradient-to-br from-primary to-secondary text-white rounded-lg flex items-center justify-center shadow-glow"><i class="fa-solid fa-store text-sm"></i></div>
+                <div>
+                    <h2 class="font-extrabold text-sm leading-tight line-clamp-1 text-[var(--text-main)]" id="mobile-store-name">Store Name</h2>
+                    <span class="text-[9px] font-bold uppercase tracking-widest text-primary">Verified Partner</span>
+                </div>
+            </div>
+            <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500"><i class="fa-regular fa-bell text-xs"></i></div>
+        </header>
+
+        <main class="flex-1 w-full max-w-6xl mx-auto p-4 md:p-10 pb-32 relative">
+            
+            <section id="sec-dashboard" class="fade-in block">
+                <div class="mb-8 hidden md:block">
+                    <h2 class="text-3xl font-black text-[var(--text-main)] tracking-tight">Welcome back! 👋</h2>
+                    <p class="text-[var(--text-muted)] font-medium mt-1">Here's what's happening with your store today.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                    <div class="wallet-card rounded-[2rem] p-7 shadow-xl shadow-slate-900/10">
+                        <div class="flex justify-between items-start mb-6 relative z-10">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Unpaid Dues (Revenue)</p>
+                                <h3 class="text-4xl font-black text-white" id="stat-earnings">₹0</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/10"><i class="fa-solid fa-wallet text-emerald-400 text-xl"></i></div>
+                        </div>
+                        <div class="relative z-10 flex items-center gap-2 text-xs font-medium text-emerald-300">
+                            <i class="fa-solid fa-arrow-trend-up"></i> Awaiting settlement from Admin
+                        </div>
+                    </div>
+                    
+                    <div class="pro-card p-7 relative overflow-hidden flex flex-col justify-between">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-1">Items Sold</p>
+                                <h3 class="text-4xl font-black text-[var(--text-main)]" id="stat-sales">0</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-bag-shopping text-xl"></i></div>
+                        </div>
+                        <div class="text-xs font-bold text-blue-600 bg-blue-50 inline-block px-3 py-1.5 rounded-lg self-start">All Time Performance</div>
+                    </div>
+                </div>
+
+                <div class="pro-card p-6 w-full">
+                    <div class="flex justify-between items-center mb-6"><h3 class="text-base font-bold text-[var(--text-main)]"><i class="fa-solid fa-chart-line mr-2 text-primary"></i> Revenue Trend</h3></div>
+                    <div class="relative h-64 w-full"><canvas id="salesChart"></canvas></div>
+                </div>
+            </section>
+
+            <section id="sec-products" class="hidden">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h2 class="text-2xl font-black text-[var(--text-main)]">Inventory</h2>
+                        <p class="text-xs font-medium text-[var(--text-muted)] mt-1">Manage your product catalog</p>
+                    </div>
+                    <button id="btn-add-product" class="pro-btn w-auto text-sm px-5 py-2.5 shadow-glow"><i class="fa-solid fa-plus"></i> Add Item</button>
+                </div>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5" id="seller-products-grid"></div>
+            </section>
+
+            <section id="sec-orders" class="hidden">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-black text-[var(--text-main)]">Orders & Payments</h2>
+                    <p class="text-xs font-medium text-[var(--text-muted)] mt-1">Fulfill orders and verify transactions</p>
+                </div>
+                <div class="space-y-5" id="seller-orders-list"></div>
+            </section>
+
+            <section id="sec-profile" class="hidden">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-black text-[var(--text-main)]">Store Settings</h2>
+                    <p class="text-xs font-medium text-[var(--text-muted)] mt-1">Configure your business profile</p>
+                </div>
+                <div class="pro-card p-6 md:p-8 max-w-3xl mb-10 shadow-sm border border-gray-100">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-5">
+                            <h3 class="font-bold border-b pb-3 text-[var(--text-main)] border-[var(--border-color)] flex items-center gap-2"><i class="fa-solid fa-circle-info text-gray-400"></i> Basic Info</h3>
+                            <div><label class="pro-label">Business Name</label><input type="text" id="prof-store" class="pro-input font-bold text-[var(--text-main)]"></div>
+                            <div><label class="pro-label">Registered Contact</label><input type="text" id="prof-phone" disabled class="pro-input cursor-not-allowed opacity-60"></div>
+                            <div><label class="pro-label">Pickup Address</label><textarea id="prof-address" class="pro-input font-medium resize-none h-24 leading-relaxed"></textarea></div>
+                        </div>
+                        <div class="space-y-5">
+                            <h3 class="font-bold border-b pb-3 text-[var(--text-main)] border-[var(--border-color)] flex items-center gap-2"><i class="fa-solid fa-building-columns text-gray-400"></i> Online Payments</h3>
+                            <div><label class="pro-label">Store UPI ID</label><input type="text" id="prof-upi" placeholder="e.g. 9876543210@ybl" class="pro-input font-mono"></div>
+                            <div>
+                                <label class="pro-label">Shop QR Code (Base64)</label>
+                                <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors hover:bg-[var(--bg-body)] border-[var(--border-color)] bg-[var(--bg-surface)]">
+                                    <div class="flex flex-col items-center justify-center" id="qr-upload-placeholder"><i class="fa-solid fa-qrcode text-2xl mb-2 text-primary opacity-50"></i><p class="text-xs font-bold text-[var(--text-muted)]">Upload QR Image</p></div>
+                                    <img id="prof-qr-preview" class="hidden h-full object-contain rounded-lg p-2" /><input type="file" id="prof-qr-file" class="hidden" accept="image/*" />
+                                </label>
+                                <input type="hidden" id="prof-qr-base64">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-8 mt-8 border-t text-center md:text-right border-[var(--border-color)]">
+                        <button id="btn-update-profile" class="pro-btn w-full md:w-auto px-10 py-3.5 text-base shadow-glow mx-auto md:mx-0">Save Configurations</button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <nav class="md:hidden glass-nav fixed bottom-4 left-1/2 transform -translate-x-1/2 w-[90%] max-w-[380px] flex justify-around p-2 rounded-2xl z-40 shadow-2xl shadow-slate-200/50">
+            <button class="nav-btn active flex flex-col items-center gap-1 w-16 pt-1.5 pb-1 rounded-xl bg-emerald-50 text-primary transition-all" data-target="dashboard"><i class="fa-solid fa-chart-pie text-lg mb-0.5"></i><span class="text-[9px] font-bold">Home</span></button>
+            <button class="nav-btn flex flex-col items-center gap-1 w-16 pt-1.5 pb-1 rounded-xl text-[var(--text-muted)] transition-all" data-target="products"><i class="fa-solid fa-boxes-stacked text-lg mb-0.5"></i><span class="text-[9px] font-bold">Items</span></button>
+            <button class="nav-btn flex flex-col items-center gap-1 w-16 pt-1.5 pb-1 rounded-xl text-[var(--text-muted)] transition-all relative" data-target="orders"><i class="fa-solid fa-receipt text-lg mb-0.5"></i><span class="text-[9px] font-bold">Orders</span><span id="nav-badge-orders-mobile" class="absolute top-1 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white hidden"></span></button>
+            <button class="nav-btn flex flex-col items-center gap-1 w-16 pt-1.5 pb-1 rounded-xl text-[var(--text-muted)] transition-all" data-target="profile"><i class="fa-solid fa-gear text-lg mb-0.5"></i><span class="text-[9px] font-bold">Config</span></button>
+        </nav>
+    </div>
+
+    <!-- PRODUCT MODAL -->
+    <div id="product-modal" class="fixed inset-0 z-[80] hidden items-end md:items-center justify-center glass-overlay sm:p-4">
+        <div class="pro-card w-full max-w-xl p-6 sm:p-8 slide-in-bottom md:rounded-2xl rounded-t-[2rem] rounded-b-none max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-[var(--border-color)]"><h3 class="text-xl font-black text-[var(--text-main)]" id="product-modal-title">Add New Product</h3><button id="btn-close-modal" class="text-gray-400 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark text-sm"></i></button></div>
+            <form id="product-form" class="space-y-5">
+                <input type="hidden" id="prod-id">
+                <div><label class="pro-label">Product Title</label><input type="text" id="prod-title" required class="pro-input font-bold" placeholder="E.g. Premium Pan Masala / Flavour"></div>
+                
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div><label class="pro-label">Stock</label><input type="number" id="prod-stock" required class="pro-input" placeholder="Qty"></div>
+                    <div><label class="pro-label">Category</label><select id="prod-category" required class="pro-input px-2 cursor-pointer font-medium"></select></div>
+                </div>
+                
+                <div>
+                    <label class="pro-label">Product Description</label>
+                    <textarea id="prod-desc" required class="pro-input font-medium resize-none h-24 leading-relaxed" placeholder="Write details about the product, material, features, etc..."></textarea>
+                </div>
+                
+                <div class="border-2 border-primary border-dashed rounded-xl p-4 bg-emerald-50 relative mt-4">
+                    <span class="absolute -top-2.5 left-4 bg-emerald-50 px-2 text-[10px] font-black text-primary uppercase">Pack Variations</span>
+                    <p class="text-[9px] text-gray-500 font-bold mb-3 uppercase tracking-wide">Ex: Add Pack 2, Price: 200, MRP: 400. Discount auto-calculated!</p>
+                    <div id="variations-container" class="space-y-3 mb-3"></div>
+                    <button type="button" onclick="addPackRow('', '', '')" class="w-full text-xs font-bold bg-white text-primary border border-primary py-2 rounded-lg shadow-sm hover:bg-emerald-100 transition-colors"><i class="fa-solid fa-plus mr-1"></i> Add Pack Option</button>
+                </div>
+
+                <div>
+                    <label class="pro-label">Product Image (Google Drive Link)</label>
+                    <input type="text" id="prod-drive-link" placeholder="Paste Google Drive Link Here..." class="pro-input font-bold mb-2">
+                    <p class="text-[9px] text-[var(--text-muted)] font-bold mb-3">*Note: Drive link ki permission "Anyone with the link" zaroor set karein.</p>
+                    <div class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl border-gray-300 bg-gray-50 mt-1">
+                        <div class="flex flex-col items-center justify-center" id="upload-placeholder"><i class="fa-solid fa-image text-3xl mb-2 text-primary opacity-50"></i><p class="text-sm font-bold text-[var(--text-main)]">Image Preview</p></div>
+                        <img id="prod-img-preview" class="hidden h-full object-contain rounded-lg p-2" />
+                    </div>
+                    <input type="hidden" id="prod-img-url">
+                </div>
+                <div class="pt-4"><button type="submit" id="btn-save-product" class="pro-btn py-4 text-base shadow-glow">Publish Product</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 🔥 YAHAN SE AAPKA NAYA FIREBASE REST API SCRIPT SHURU HOTA HAI 🔥 -->
+    <script>
+        // 🔥 PROFESSIONAL FIREBASE CONFIGURATION 🔥
+        const firebaseConfig = {
+            apiKey: "AIzaSyABbMfeWlgf40q4Lu8PeBADB-ta-hJWeUU",
+            authDomain: "tobacart-cefc5.firebaseapp.com",
+            databaseURL: "https://tobacart-cefc5-default-rtdb.firebaseio.com",
+            projectId: "tobacart-cefc5",
+            storageBucket: "tobacart-cefc5.firebasestorage.app",
+            messagingSenderId: "492221338733",
+            appId: "1:492221338733:web:594c91ca38c85bfd711b64"
+        };
+
+        // Firebase REST API Base URL
+        const FIREBASE_URL = firebaseConfig.databaseURL + "/";
+
+        // 🚀 Master Data Fetcher (Synchronous & Fast)
+        function getDB(col) {
+            try {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', FIREBASE_URL + 'tobacart_' + col + '.json', false); 
+                xhr.send(null);
+                if (xhr.status === 200 && xhr.responseText && xhr.responseText !== "null") {
+                    return JSON.parse(xhr.responseText);
+                }
+            } catch(e) { console.error("Database Fetch Error:", e); }
+            return [];
+        }
+
+        // 🚀 Master Data Saver (Live to Firebase)
+        function saveDB(col, data) {
+            try {
+                localStorage.setItem('tobacart_' + col, JSON.stringify(data)); 
+                
+                var xhr = new XMLHttpRequest();
+                xhr.open('PUT', FIREBASE_URL + 'tobacart_' + col + '.json', true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.send(JSON.stringify(data));
+            } catch(e) { console.error("Database Save Error:", e); }
+        }
+
+        let currentSeller = JSON.parse(localStorage.getItem('tobacart_seller_auth'));
+        let salesChartInstance = null;
+
+        function showToast(msg, type = 'success') {
+            const t = document.createElement('div');
+            const icon = type === 'error' ? 'fa-triangle-exclamation text-red-500' : 'fa-circle-check text-primary';
+            t.className = `pro-card flex items-center gap-3 p-4 border-l-4 ${type==='error'?'border-red-500':'border-primary'} fade-in shadow-xl absolute z-[200]`;
+            t.innerHTML = `<i class="fa-solid ${icon} text-xl"></i> <span class="font-bold text-sm text-[var(--text-main)]">${msg}</span>`;
+            document.getElementById('toast-container').appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+        }
+
+        function showConfirm(msg, onConfirm) {
+            const m = document.getElementById('confirm-modal'); document.getElementById('confirm-message').innerText = msg;
+            m.classList.remove('hidden'); m.classList.add('flex');
+            const okBtn = document.getElementById('btn-confirm-ok'); const newBtnOk = okBtn.cloneNode(true); okBtn.parentNode.replaceChild(newBtnOk, okBtn);
+            newBtnOk.onclick = () => { m.classList.add('hidden'); onConfirm(); };
+            document.getElementById('btn-confirm-cancel').onclick = () => m.classList.add('hidden');
+        }
+
+        document.getElementById('toggle-register').onclick = (e) => { e.preventDefault(); document.getElementById('login-form').classList.add('hidden'); document.getElementById('register-form').classList.remove('hidden'); document.getElementById('auth-error-msg').classList.add('hidden'); document.getElementById('toggle-text-login').classList.add('hidden'); document.getElementById('toggle-text-register').classList.remove('hidden'); };
+        document.getElementById('toggle-login').onclick = (e) => { e.preventDefault(); document.getElementById('register-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); document.getElementById('auth-error-msg').classList.add('hidden'); document.getElementById('toggle-text-register').classList.add('hidden'); document.getElementById('toggle-text-login').classList.remove('hidden'); };
+
+        document.getElementById('register-form').onsubmit = (e) => {
+            e.preventDefault(); const phone = document.getElementById('reg-phone').value;
+            let sellers = getDB('sellers_profile');
+            if(sellers.find(s => s.phone === phone)) return showToast('Phone already registered', 'error');
+
+            const newSeller = { id: 'sel_'+Date.now(), storeName: document.getElementById('reg-store').value, phone, shopAddress: document.getElementById('reg-address').value, pass: document.getElementById('reg-pass').value, approved: false, upiId: '', qrCodeBase64: '' };
+            sellers.push(newSeller); saveDB('sellers_profile', sellers);
+            showToast('Application submitted! Pending Admin Approval.'); document.getElementById('toggle-login').click();
+        };
+
+        document.getElementById('login-form').onsubmit = (e) => {
+            e.preventDefault(); const errBox = document.getElementById('auth-error-msg'); errBox.classList.add('hidden');
+            const seller = getDB('sellers_profile').find(s => s.phone === document.getElementById('login-phone').value && s.pass === document.getElementById('login-pass').value);
+            if(seller) {
+                if(!seller.approved) { document.getElementById('auth-error-text').innerText = "Account is pending Admin approval."; errBox.classList.remove('hidden'); return; }
+                currentSeller = seller; localStorage.setItem('tobacart_seller_auth', JSON.stringify(seller)); checkAuth(); showToast('Welcome to Tobacart Seller Central!');
+            } else { document.getElementById('auth-error-text').innerText = "Invalid credentials. Please try again."; errBox.classList.remove('hidden'); }
+        };
+
+        document.getElementById('btn-logout-desktop').onclick = () => showConfirm("Are you sure you want to sign out?", () => { localStorage.removeItem('tobacart_seller_auth'); currentSeller = null; checkAuth(); });
+
+        function checkAuth() {
+            if(currentSeller) {
+                const freshCheck = getDB('sellers_profile').find(s => s.id === currentSeller.id);
+                if(!freshCheck || !freshCheck.approved) { localStorage.removeItem('tobacart_seller_auth'); currentSeller = null; return checkAuth(); }
+                document.getElementById('auth-view').classList.add('hidden'); document.getElementById('app-view').classList.remove('hidden'); document.getElementById('app-view').classList.add('flex');
+                document.getElementById('nav-store-name').innerText = currentSeller.storeName;
+                document.getElementById('mobile-store-name').innerText = currentSeller.storeName;
+                initApp();
+            } else {
+                document.getElementById('auth-view').classList.remove('hidden'); document.getElementById('app-view').classList.add('hidden'); document.getElementById('app-view').classList.remove('flex');
+            }
+        }
+
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('bg-emerald-50', 'text-primary'); b.classList.add('text-[var(--text-muted)]'); });
+                const targetBtn = e.currentTarget;
+                targetBtn.classList.remove('text-[var(--text-muted)]'); targetBtn.classList.add('bg-emerald-50', 'text-primary');
+                document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+                document.getElementById(`sec-${targetBtn.dataset.target}`).classList.remove('hidden'); document.getElementById(`sec-${targetBtn.dataset.target}`).classList.add('fade-in');
+                
+                // Fetch fresh data when tab changes
+                if(targetBtn.dataset.target === 'dashboard') renderDashboard(); 
+                if(targetBtn.dataset.target === 'products') renderProducts(); 
+                if(targetBtn.dataset.target === 'orders') renderOrders(); 
+                if(targetBtn.dataset.target === 'profile') loadProfile();
+            });
+        });
+
+        function initApp() { 
+            const catSelect = document.getElementById('prod-category'); const adminCats = getDB('categories');
+            catSelect.innerHTML = adminCats.length ? adminCats.map(c => `<option value="${c.name}">${c.name}</option>`).join('') : '<option value="Tobacco">Tobacco</option>';
+            renderDashboard(); renderProducts(); renderOrders(); updateBadges();
+        }
+
+        function updateBadges() {
+            const myOrders = getDB('orders').filter(o => o.sellerId === currentSeller.id && (o.status === 'Pending' || o.paymentStatus === 'Pending Verification'));
+            const b1 = document.getElementById('nav-badge-orders'); const b2 = document.getElementById('nav-badge-orders-mobile');
+            if(myOrders.length > 0) { b1.classList.remove('hidden'); b2.classList.remove('hidden'); } else { b1.classList.add('hidden'); b2.classList.add('hidden'); }
+        }
+
+        function renderDashboard() {
+            const myOrders = getDB('orders').filter(o => o.sellerId === currentSeller.id);
+            let totEarn = 0; let totSales = 0; let dRev = {};
+            myOrders.forEach(o => {
+                if(o.status !== 'Pending' && o.paymentStatus !== 'Pending Verification' && o.status !== 'Cancelled') { 
+                    if(!o.sellerPaid) { totEarn += o.total; }
+                    o.items.forEach(i => totSales += i.qty);
+                    const d = o.date || new Date().toLocaleDateString(); dRev[d] = (dRev[d] || 0) + o.total;
+                }
+            });
+            document.getElementById('stat-earnings').innerText = `₹${totEarn.toLocaleString('en-IN')}`; document.getElementById('stat-sales').innerText = totSales;
+            const labels = Object.keys(dRev); const data = Object.values(dRev);
+            if(labels.length === 0) { labels.push(new Date().toLocaleDateString()); data.push(0); }
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            if(salesChartInstance) salesChartInstance.destroy();
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)'); gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+            salesChartInstance = new Chart(ctx, { type: 'line', data: { labels, datasets: [{ data, borderColor: '#10b981', backgroundColor: gradient, borderWidth: 3, fill: true, tension: 0.4, pointBackgroundColor: '#ffffff', pointBorderColor: '#10b981', pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a', padding: 10, cornerRadius: 8, titleFont: {family: 'Plus Jakarta Sans', size: 13}, bodyFont: {family: 'Plus Jakarta Sans', size: 14, weight: 'bold'} } }, scales: { y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#f1f5f9' }, ticks: {font: {family: 'Plus Jakarta Sans'}} }, x: { grid: { display: false }, ticks: {font: {family: 'Plus Jakarta Sans'}} } } } });
+        }
+
+        window.addPackRow = (name, price, mrp) => {
+            const id = Date.now();
+            document.getElementById('variations-container').insertAdjacentHTML('beforeend', `
+                <div class="flex gap-2 items-center var-row bg-white p-2 rounded-xl border border-gray-200 shadow-sm" id="pack-${id}">
+                    <input type="text" placeholder="Pack Name" class="pro-input flex-1 var-name py-2 text-xs font-bold" value="${name}">
+                    <input type="number" placeholder="Price" class="pro-input w-20 var-price py-2 text-xs text-primary font-bold" value="${price}">
+                    <input type="number" placeholder="MRP" class="pro-input w-20 var-mrp py-2 text-xs font-bold" value="${mrp}">
+                    <button type="button" onclick="document.getElementById('pack-${id}').remove()" class="text-red-500 hover:text-red-700 px-3 bg-red-50 rounded-lg h-full py-2 transition-colors"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            `);
+        };
+
+        const pModal = document.getElementById('product-modal');
+        document.getElementById('btn-add-product').onclick = () => { 
+            document.getElementById('product-form').reset(); 
+            document.getElementById('prod-id').value = ''; 
+            document.getElementById('prod-desc').value = ''; 
+            document.getElementById('prod-drive-link').value = ''; 
+            document.getElementById('variations-container').innerHTML = ''; 
+            document.getElementById('prod-img-preview').classList.add('hidden'); 
+            document.getElementById('upload-placeholder').classList.remove('hidden'); 
+            document.getElementById('product-modal-title').innerText = 'Add New Product'; 
+            pModal.classList.remove('hidden'); pModal.classList.add('flex'); 
+        };
+        document.getElementById('btn-close-modal').onclick = () => { pModal.classList.add('hidden'); pModal.classList.remove('flex'); };
+
+        // Google Drive Link Converter Logic
+        function convertToDirectLink(driveUrl) {
+            const regex = /\/d\/([a-zA-Z0-9_-]+)/;
+            const match = driveUrl.match(regex);
+            if (match && match[1]) { return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1200`; }
+            return driveUrl;
+        }
+
+        // Drive link paste karte hi image preview dikhane ka logic
+        document.getElementById('prod-drive-link').addEventListener('input', (e) => {
+            const inputLink = e.target.value.trim();
+            if(inputLink) {
+                const directLink = convertToDirectLink(inputLink);
+                document.getElementById('prod-img-url').value = directLink;
+                document.getElementById('prod-img-preview').src = directLink;
+                document.getElementById('prod-img-preview').classList.remove('hidden');
+                document.getElementById('upload-placeholder').classList.add('hidden');
+            } else {
+                document.getElementById('prod-img-url').value = '';
+                document.getElementById('prod-img-preview').src = '';
+                document.getElementById('prod-img-preview').classList.add('hidden');
+                document.getElementById('upload-placeholder').classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('product-form').addEventListener('submit', (e) => {
+            e.preventDefault(); const btn = document.getElementById('btn-save-product'); const oldText = btn.innerHTML; btn.innerHTML = '<div class="loader mx-auto"></div>';
+            const id = document.getElementById('prod-id').value;
+            let variations = [];
+            document.querySelectorAll('.var-row').forEach(r => { 
+                const n = r.querySelector('.var-name').value.trim(); 
+                const p = parseFloat(r.querySelector('.var-price').value); 
+                const m = parseFloat(r.querySelector('.var-mrp').value);
+                if(n && !isNaN(p) && !isNaN(m)) variations.push({ name: n, price: p, mrp: m }); 
+            });
+            
+            if(variations.length === 0) {
+                btn.innerHTML = oldText;
+                return showToast("Please add at least 1 Pack option!", "error");
+            }
+
+            const payload = { 
+                id: id || 'prod_' + Date.now(), 
+                title: document.getElementById('prod-title').value, 
+                category: document.getElementById('prod-category').value, 
+                stock: Number(document.getElementById('prod-stock').value), 
+                description: document.getElementById('prod-desc').value, 
+                packs: variations, 
+                price: variations[0].price, 
+                mrp: variations[0].mrp,
+                imageUrl: document.getElementById('prod-img-url').value || 'https://via.placeholder.com/150', 
+                sellerId: currentSeller.id, 
+                global: false 
+            };
+
+            setTimeout(() => {
+                let prods = getDB('products');
+                try { 
+                    if(id) { 
+                        const idx = prods.findIndex(p => p.id === id && p.sellerId === currentSeller.id); 
+                        if(idx > -1) prods[idx] = payload; 
+                    } else {
+                        prods.push(payload); 
+                    }
+                    saveDB('products', prods); 
+                    showToast('Product Published Successfully! 🎉'); 
+                    document.getElementById('btn-close-modal').click(); 
+                    renderProducts(); 
+                } catch (err) { showToast('Storage Error!', 'error'); }
+                btn.innerHTML = oldText;
+            }, 300);
+        });
+
+        function renderProducts() {
+            const grid = document.getElementById('seller-products-grid'); const myProds = getDB('products').filter(p => p.sellerId === currentSeller.id);
+            if(!myProds.length) { grid.innerHTML = `<div class="col-span-full text-center py-20 bg-white border border-dashed border-gray-300 rounded-3xl"><div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-box-open text-3xl text-gray-300"></i></div><h3 class="text-lg font-bold text-gray-900 mb-1">Your inventory is empty</h3><p class="text-sm text-gray-500 mb-6">Start adding products to see them here.</p><button onclick="document.getElementById('btn-add-product').click()" class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold shadow-glow">Add First Product</button></div>`; return; }
+            
+            grid.innerHTML = myProds.map(p => {
+                const stockStat = p.stock > 10 ? `<span class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded flex items-center gap-1"><i class="fa-solid fa-check-circle"></i> In Stock (${p.stock})</span>` : `<span class="text-red-600 bg-red-50 px-2 py-0.5 rounded flex items-center gap-1 animate-pulse"><i class="fa-solid fa-triangle-exclamation"></i> Low Stock (${p.stock})</span>`;
+                return `
+                <div class="pro-card p-4 flex flex-col relative overflow-hidden group bg-[var(--bg-surface)]">
+                    <div class="absolute top-4 right-4 text-[10px] font-extrabold uppercase tracking-widest ${stockStat} z-10"></div>
+                    <div class="w-full h-40 bg-gray-50 rounded-xl mb-4 flex items-center justify-center p-2 overflow-hidden relative border border-gray-100">
+                        <img src="${p.imageUrl}" class="max-h-full object-contain transition-transform duration-500 group-hover:scale-110 mix-blend-multiply">
+                    </div>
+                    <h3 class="font-bold text-base text-[var(--text-main)] line-clamp-1 leading-tight mb-1">${p.title}</h3>
+                    <p class="text-[10px] uppercase font-extrabold text-primary tracking-wider mb-2">${p.category}</p>
+                    ${p.packs && p.packs.length > 0 ? `<div class="mt-2 mb-2"><span class="text-[9px] bg-blue-50 text-blue-600 border border-blue-100 px-2 py-1 rounded-md font-bold uppercase tracking-wider">${p.packs.length} Active Packs</span></div>` : ''}
+                    <div class="mt-auto pt-4 flex justify-between items-end border-t border-gray-100">
+                        <div>
+                            <p class="font-black text-xl text-[var(--text-main)]">₹${p.price.toLocaleString('en-IN')}</p>
+                            ${p.mrp > p.price ? `<p class="text-[10px] font-bold text-gray-400 line-through">MRP: ₹${p.mrp}</p>` : ''}
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="window.editProduct('${p.id}')" class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
+                            <button onclick="window.deleteProduct('${p.id}')" class="w-8 h-8 bg-red-50 text-red-500 rounded-lg flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.editProduct = (id) => {
+            const p = getDB('products').find(x => x.id === id && x.sellerId === currentSeller.id); if(!p) return;
+            document.getElementById('prod-id').value = id; 
+            document.getElementById('prod-title').value = p.title; 
+            document.getElementById('prod-category').value = p.category; 
+            document.getElementById('prod-stock').value = p.stock; 
+            document.getElementById('prod-desc').value = p.description || ''; 
+            document.getElementById('prod-drive-link').value = p.imageUrl || ''; 
+            document.getElementById('prod-img-url').value = p.imageUrl;
+            
+            document.getElementById('variations-container').innerHTML = ''; if(p.packs) p.packs.forEach(v => addPackRow(v.name, v.price, v.mrp));
+            document.getElementById('upload-placeholder').classList.add('hidden'); document.getElementById('prod-img-preview').src = p.imageUrl; document.getElementById('prod-img-preview').classList.remove('hidden');
+            document.getElementById('product-modal-title').innerText = 'Edit Product'; document.getElementById('btn-add-product').click(); 
+        };
+        window.deleteProduct = (id) => showConfirm("Delete this product permanently?", () => { saveDB('products', getDB('products').filter(p => p.id !== id)); renderProducts(); showToast('Product deleted'); });
+
+        function renderOrders() {
+            const list = document.getElementById('seller-orders-list'); 
+            const myOrders = getDB('orders').filter(o => o.sellerId === currentSeller.id).reverse();
+            
+            if(!myOrders.length) { 
+                list.innerHTML = `<div class="col-span-full text-center py-20 bg-[var(--bg-surface)] border border-dashed border-gray-300 rounded-3xl"><div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-receipt text-3xl text-gray-300"></i></div><h3 class="text-lg font-bold text-gray-900 mb-1">No orders yet</h3><p class="text-sm text-gray-500">When customers buy your products, they will appear here.</p></div>`; 
+                return; 
+            }
+            
+            list.innerHTML = myOrders.map(order => {
+                const isCancelled = order.status === 'Cancelled';
+                const isHandedOver = ['Handed Over','Shipped','Out for Delivery','Delivered'].includes(order.status);
+                let statusClass = isCancelled ? 'bg-red-50 text-red-700 border-red-200' : (order.status === 'Delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : (isHandedOver ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-gray-100 text-gray-700 border-gray-200'));
+                
+                let actionButton = '';
+                const isOnline = order.paymentMethod === 'ONLINE';
+                const isPendingVerification = isOnline && order.paymentStatus === 'Pending Verification';
+
+                let paymentBadge = `<span class="text-[10px] font-extrabold px-2.5 py-1 rounded-md bg-orange-50 text-orange-700 border border-orange-200 uppercase tracking-widest"><i class="fa-solid fa-money-bill mr-1"></i> COD</span>`;
+                if(isOnline) {
+                    if(isPendingVerification) {
+                        paymentBadge = `<span class="text-[10px] font-extrabold px-2.5 py-1 rounded-md bg-yellow-50 text-yellow-700 border border-yellow-300 animate-pulse uppercase tracking-widest"><i class="fa-solid fa-qrcode mr-1"></i> Check UTR: ${order.transactionId}</span>`;
+                        actionButton = `<button onclick="window.verifyPayment('${order.id}')" class="bg-blue-600 text-white hover:bg-blue-700 font-bold w-full text-sm py-3.5 px-6 rounded-xl shadow-md transition-all hover:-translate-y-0.5"><i class="fa-solid fa-check-double mr-1.5"></i> Verify Payment</button>`;
+                    } else {
+                        paymentBadge = `<span class="text-[10px] font-extrabold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-widest"><i class="fa-solid fa-check-circle mr-1"></i> Paid Online</span>`;
+                    }
+                }
+
+                if (isCancelled) {
+                    actionButton = `
+                        <div class="bg-red-50 text-red-600 border border-red-100 rounded-xl p-3 text-center w-full flex flex-col justify-center shadow-sm">
+                            <i class="fa-solid fa-ban mb-2 text-2xl"></i>
+                            <p class="text-xs font-black uppercase tracking-widest mb-1">Cancelled</p>
+                            <p class="text-[9px] font-bold text-red-500">By: ${order.cancelledBy || 'Unknown'}</p>
+                            <p class="text-[9px] font-bold text-red-400 mt-1">${order.cancelledAt || ''}</p>
+                        </div>
+                    `;
+                } else {
+                    if(!actionButton && !isHandedOver) { 
+                        actionButton = `<button onclick="window.markHandedOver('${order.id}')" class="pro-btn w-full text-sm py-3.5 px-6 shadow-glow">Ready to Ship <i class="fa-solid fa-box-open ml-1"></i></button>`; 
+                    } else if (!actionButton && isHandedOver) { 
+                        actionButton = `<span class="text-xs font-bold px-5 py-3 rounded-xl bg-gray-50 text-[var(--text-muted)] border border-[var(--border-color)] inline-block text-center w-full uppercase tracking-wide"><i class="fa-solid fa-truck-fast mr-1.5 text-gray-400"></i> ${order.status}</span>`; 
+                    }
+                    actionButton += `
+                        <button onclick="window.cancelOrderSeller('${order.id}')" class="mt-3 w-full bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all py-2.5 rounded-xl text-xs font-black border border-red-100 shadow-sm"><i class="fa-solid fa-xmark mr-1"></i> Cancel Order</button>
+                    `;
+                }
+
+                const cardBorder = isCancelled ? 'border-2 border-red-400 shadow-red-50 opacity-90' : (isPendingVerification ? 'border-2 border-yellow-400 shadow-yellow-100' : (!isHandedOver ? 'border-2 border-primary/30 shadow-emerald-50' : 'border border-[var(--border-color)] opacity-90'));
+                const waLink = `https://wa.me/91${order.customerDetails.phone}?text=Hello%20${encodeURIComponent(order.customerDetails.name)},%20Here%20is%20your%20invoice%20for%20Order%20%23${order.trackingId}.%20Total%20Amount:%20%E2%82%B9${order.total}.%20Thank%20you%20for%20shopping%20with%20Tobacart!`;
+
+                const itemsHtml = order.items && order.items.length > 0 ? order.items.map(i => {
+                    const pkName = i.selectedPack ? i.selectedPack.name : '';
+                    return `
+                    <div class="flex items-start gap-2 bg-white p-2 rounded-lg border border-gray-100 shadow-sm mb-2">
+                        <div class="w-6 h-6 bg-emerald-50 text-primary rounded flex items-center justify-center text-[10px] font-black shrink-0">${i.qty}x</div>
+                        <div class="flex-1">
+                            <p class="text-xs font-bold text-gray-800 leading-snug">${i.title}</p>
+                            ${pkName ? `<p class="text-[9px] font-bold text-gray-500 mt-0.5 uppercase tracking-wide">${pkName}</p>` : ''}
+                        </div>
+                        <div class="text-xs font-black text-gray-800">₹${i.price * i.qty}</div>
+                    </div>`;
+                }).join('') : '<p class="text-xs text-gray-400 font-bold">No items found</p>';
+
+                const customerHtml = order.customerDetails ? `
+                    <div class="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                        <p class="text-sm font-black text-gray-800 mb-1">${order.customerDetails.name}</p>
+                        <p class="text-xs font-bold text-gray-600 flex items-center gap-2"><i class="fa-solid fa-phone text-gray-400"></i> ${order.customerDetails.phone}</p>
+                        <p class="text-xs font-medium text-gray-500 mt-1 flex items-start gap-2 leading-relaxed"><i class="fa-solid fa-location-dot text-gray-400 mt-0.5"></i> ${order.customerDetails.address}</p>
+                    </div>` : '<p class="text-xs text-gray-400 font-bold">No customer details</p>';
+
+                return `
+                <div class="pro-card p-5 flex flex-col lg:flex-row gap-5 mb-4 ${cardBorder} shadow-lg transition-all hover:opacity-100 bg-[var(--bg-surface)] overflow-hidden">
+                    
+                    <div class="flex-1">
+                        <div class="flex flex-wrap items-center gap-2 mb-3">
+                            <span class="font-black text-sm text-[var(--text-main)]">#${order.trackingId}</span>
+                            <span class="border ${statusClass} px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">${order.status}</span>
+                            ${paymentBadge}
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <p class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-2"><i class="fa-solid fa-box-open mr-1"></i> Ordered Items</p>
+                                ${itemsHtml}
+                            </div>
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <p class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-2"><i class="fa-solid fa-user mr-1"></i> Delivery Details</p>
+                                ${customerHtml}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-3 shrink-0 w-full lg:w-48 lg:border-l lg:border-[var(--border-color)] lg:pl-5 pt-3 lg:pt-0 justify-between">
+                        <div class="text-left lg:text-right w-full">
+                            <p class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-1">Order Value</p>
+                            <p class="font-black text-3xl text-[var(--text-main)] mb-3">₹${order.total.toLocaleString('en-IN')}</p>
+                            ${!isCancelled ? `<a href="${waLink}" target="_blank" class="text-[10px] font-black bg-[#25D366] text-white py-1.5 px-3 rounded-lg shadow-sm hover:bg-[#128C7E] transition-colors uppercase tracking-widest inline-flex items-center gap-1.5"><i class="fa-brands fa-whatsapp text-sm"></i> Invoice</a>` : ''}
+                        </div>
+                        <div class="w-full mt-auto">${actionButton}</div>
+                    </div>
+
+                </div>`;
+            }).join('');
+        }
+
+        window.verifyPayment = (id) => showConfirm("Confirm payment received in your bank account?", () => {
+            let o = getDB('orders'); let i = o.findIndex(x => x.id === id && x.sellerId === currentSeller.id);
+            if(i > -1) { o[i].paymentStatus = 'Verified'; o[i].status = 'Packed'; saveDB('orders', o); renderOrders(); updateBadges(); showToast('Payment Verified! Order moved to Packed.', 'success'); }
+        });
+        
+        window.markHandedOver = (id) => showConfirm("Mark ready for delivery partner?", () => {
+            let o = getDB('orders'); let i = o.findIndex(x => x.id === id && x.sellerId === currentSeller.id);
+            if(i > -1) { o[i].status = 'Handed Over'; saveDB('orders', o); renderOrders(); renderDashboard(); updateBadges(); showToast('Order Ready to Ship! Delivery Partner Notified.', 'success'); }
+        });
+
+        window.cancelOrderSeller = (id) => showConfirm("Are you sure you want to cancel this order?", () => {
+            let o = getDB('orders'); let i = o.findIndex(x => x.id === id && x.sellerId === currentSeller.id);
+            if(i > -1) { 
+                o[i].status = 'Cancelled'; 
+                o[i].cancelledBy = 'Seller';
+                o[i].cancelledAt = new Date().toLocaleString();
+                saveDB('orders', o); 
+                renderOrders(); 
+                renderDashboard(); 
+                updateBadges(); 
+                showToast('Order Cancelled Successfully.', 'error'); 
+            }
+        });
+
+        function loadProfile() {
+            const s = getDB('sellers_profile').find(x => x.id === currentSeller.id);
+            document.getElementById('prof-store').value = s.storeName; document.getElementById('prof-phone').value = s.phone; document.getElementById('prof-address').value = s.shopAddress || ''; document.getElementById('prof-upi').value = s.upiId || '';
+            if(s.qrCodeBase64) { document.getElementById('prof-qr-base64').value = s.qrCodeBase64; document.getElementById('prof-qr-preview').src = s.qrCodeBase64; document.getElementById('prof-qr-preview').classList.remove('hidden'); document.getElementById('qr-upload-placeholder').classList.add('hidden'); }
+        }
+
+        document.getElementById('prof-qr-file').addEventListener('change', (e) => {
+            const f = e.target.files[0]; if(!f) return; if(f.size > 500 * 1024) return showToast('QR Image must be less than 500KB', 'error');
+            const reader = new FileReader(); reader.onload = function(ev) { document.getElementById('prof-qr-base64').value = ev.target.result; document.getElementById('prof-qr-preview').src = ev.target.result; document.getElementById('prof-qr-preview').classList.remove('hidden'); document.getElementById('qr-upload-placeholder').classList.add('hidden'); }; reader.readAsDataURL(f);
+        });
+
+        document.getElementById('btn-update-profile').onclick = () => {
+            const btn = document.getElementById('btn-update-profile'); const oldText = btn.innerHTML; btn.innerHTML = '<div class="loader mx-auto"></div>';
+            setTimeout(() => {
+                let sellers = getDB('sellers_profile'); let idx = sellers.findIndex(s => s.id === currentSeller.id);
+                if(idx > -1) {
+                    sellers[idx].storeName = document.getElementById('prof-store').value; sellers[idx].shopAddress = document.getElementById('prof-address').value; sellers[idx].upiId = document.getElementById('prof-upi').value; sellers[idx].qrCodeBase64 = document.getElementById('prof-qr-base64').value;
+                    saveDB('sellers_profile', sellers); currentSeller = sellers[idx]; localStorage.setItem('tobacart_seller_auth', JSON.stringify(currentSeller));
+                    document.getElementById('nav-store-name').innerText = currentSeller.storeName; 
+                    document.getElementById('mobile-store-name').innerText = currentSeller.storeName; 
+                    showToast('Settings updated securely');
+                }
+                btn.innerHTML = oldText;
+            }, 500);
+        };
+
+        checkAuth();
+    </script>
+</body>
+</html>
