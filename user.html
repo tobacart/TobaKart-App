@@ -422,7 +422,7 @@
                 xhr.send(JSON.stringify(data));
             } catch(e) { console.error("Database Save Error:", e); }
         }
-
+        
         let currentUser = JSON.parse(localStorage.getItem('tobacart_user_auth'));
         if (!currentUser) {
             currentUser = {
@@ -433,6 +433,15 @@
             };
             localStorage.setItem('tobacart_user_auth', JSON.stringify(currentUser));
         }
+
+        // --- NEW ALGORITHM HELPER START ---
+        function trackUserPreference(category, weight) {
+            if (!category) return;
+            let prefs = JSON.parse(localStorage.getItem('tobacart_user_prefs_' + currentUser.id)) || {};
+            prefs[category] = (prefs[category] || 0) + weight;
+            localStorage.setItem('tobacart_user_prefs_' + currentUser.id, JSON.stringify(prefs));
+        }
+        // --- NEW ALGORITHM HELPER END ---
         
         let currentProductView = null; let activeCategory = 'All';
         let bannerScrollInterval;
@@ -583,9 +592,20 @@
         function renderInstantBuyPage() {
             const container = document.getElementById('instantbuy-page-container'); 
             let products = getDB('products');
+            let prefs = JSON.parse(localStorage.getItem('tobacart_user_prefs_' + currentUser.id)) || {};
             
             // Apply current category filter
-            if(activeCategory !== 'All') products = products.filter(p => p.category === activeCategory);
+            if(activeCategory !== 'All') {
+                products = products.filter(p => p.category === activeCategory);
+            } else {
+                // Apply Advanced User Recommendation Algorithm
+                products.sort((a, b) => {
+                    let scoreA = prefs[a.category] || 0;
+                    let scoreB = prefs[b.category] || 0;
+                    if (scoreA !== scoreB) return scoreB - scoreA;
+                    return 0.5 - Math.random(); // Subtle shuffle for similar scored items
+                });
+            }
             
             if(!products.length) { 
                 container.innerHTML = '<p class="text-xs font-bold text-gray-400 text-center py-10">No items available.</p>'; 
@@ -618,6 +638,8 @@
 
         window.quickAddCart = (id) => {
             const products = getDB('products'); const p = products.find(x => x.id === id); if(!p) return;
+            trackUserPreference(p.category, 3); // Update preference on quick add
+            
             let cart = getCart(); 
             
             let fPrice = Number(p.price) || 0;
@@ -678,7 +700,22 @@
         }
 
         function renderProducts() {
-            const grid = document.getElementById('product-grid'); let products = getDB('products'); if(activeCategory !== 'All') products = products.filter(p => p.category === activeCategory);
+            const grid = document.getElementById('product-grid'); 
+            let products = getDB('products'); 
+            let prefs = JSON.parse(localStorage.getItem('tobacart_user_prefs_' + currentUser.id)) || {};
+
+            if(activeCategory !== 'All') {
+                products = products.filter(p => p.category === activeCategory);
+            } else {
+                // Apply Advanced User Recommendation Algorithm
+                products.sort((a, b) => {
+                    let scoreA = prefs[a.category] || 0;
+                    let scoreB = prefs[b.category] || 0;
+                    if (scoreA !== scoreB) return scoreB - scoreA;
+                    return 0.5 - Math.random(); // Subtle shuffle for similar scored items
+                });
+            }
+
             if(!products.length) { grid.innerHTML = `<div class="col-span-2 text-center py-10 bg-white rounded-2xl border border-gray-100"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner"><i class="fa-solid fa-box-open text-gray-300 text-2xl"></i></div><p class="text-sm font-bold text-gray-500">No products available.</p></div>`; return; }
             grid.innerHTML = products.map(p => {
                 let displayPrice = Number(p.price) || 0; 
@@ -769,6 +806,8 @@
 
         function openProduct(id) {
             const p = getDB('products').find(x => x.id === id); if(!p) return; currentProductView = p;
+            trackUserPreference(p.category, 1); // Track preference on view
+
             document.getElementById('detail-page-img').src = p.imageUrl; document.getElementById('detail-page-title').innerText = p.title; document.getElementById('detail-page-desc').innerText = p.description || 'Premium item. Excellent Quality.';
             const comboSec = document.getElementById('combo-section'); const varsDiv = document.getElementById('detail-page-variations');
             if(p.packs && p.packs.length > 0) {
@@ -799,6 +838,8 @@
         
         document.getElementById('btn-add-to-cart-page').onclick = () => { 
             if(!currentProductView) return; 
+            trackUserPreference(currentProductView.category, 3); // Track preference on full add
+            
             let cart = getCart(); 
             let selectedPacks = []; 
             let fPrice = Number(currentProductView.price) || 0; 
