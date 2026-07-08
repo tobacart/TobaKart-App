@@ -444,10 +444,12 @@
             document.getElementById('prod-id').value = ''; 
             document.getElementById('prod-desc').value = ''; 
             document.getElementById('prod-drive-link').value = ''; 
+            document.getElementById('prod-img-url').value = '';
             document.getElementById('variations-container').innerHTML = ''; 
             document.getElementById('prod-img-preview').classList.add('hidden'); 
             document.getElementById('upload-placeholder').classList.remove('hidden'); 
             document.getElementById('product-modal-title').innerText = 'Add New Product'; 
+            document.getElementById('btn-save-product').innerText = 'Publish Product';
             pModal.classList.remove('hidden'); pModal.classList.add('flex'); 
         };
         document.getElementById('btn-close-modal').onclick = () => { pModal.classList.add('hidden'); pModal.classList.remove('flex'); };
@@ -566,7 +568,10 @@
             
             document.getElementById('variations-container').innerHTML = ''; if(p.packs) p.packs.forEach(v => addPackRow(v.name, v.price, v.mrp));
             document.getElementById('upload-placeholder').classList.add('hidden'); document.getElementById('prod-img-preview').src = p.imageUrl; document.getElementById('prod-img-preview').classList.remove('hidden');
-            document.getElementById('product-modal-title').innerText = 'Edit Product'; document.getElementById('btn-add-product').click(); 
+            document.getElementById('product-modal-title').innerText = 'Edit Product';
+            document.getElementById('btn-save-product').innerText = 'Update Product';
+            
+            pModal.classList.remove('hidden'); pModal.classList.add('flex'); 
         };
         window.deleteProduct = (id) => showConfirm("Delete this product permanently?", () => { saveDB('products', getDB('products').filter(p => p.id !== id)); renderProducts(); showToast('Product deleted'); });
 
