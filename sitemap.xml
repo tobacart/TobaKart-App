@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <url>
+    <loc>https://tobacart.github.io/TobaKart-App/</loc>
+  </url>
+
+  <url>
+    <loc>https://tobacart.github.io/TobaKart-App/user.html</loc>
+  </url>
+
+  <url>
+    <loc>https://tobacart.github.io/TobaKart-App/admin.html</loc>
+  </url>
+
+  <url>
+    <loc>https://tobacart.github.io/TobaKart-App/seller.html</loc>
+  </url>
+
+  <url>
+    <loc>https://tobacart.github.io/TobaKart-App/delivery.html</loc>
+  </url>
+
+</urlset>
