@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Contact Us | TobaKart Support</title>
+    <meta name="description" content="Get in touch with TobaKart customer support. Reach out via email or WhatsApp for assistance with your local shopping orders in Surat.">
+    <meta name="keywords" content="TobaKart contact, customer support, Surat e-commerce help, TobaKart WhatsApp, contact TobaKart">
+    <meta name="author" content="TobaKart">
+    <meta name="theme-color" content="#0f172a">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tobacart.github.io/TobaKart-App/contact.html">
+    <meta property="og:title" content="Contact Us | TobaKart Support">
+    <meta property="og:description" content="Get in touch with TobaKart customer support. Reach out via email or WhatsApp for assistance.">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="Contact Us | TobaKart Support">
+    <meta property="twitter:description" content="Get in touch with TobaKart customer support.">
+    
+    <!-- Favicon Support Placeholder -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="favicon-192x192.png">
+    
+    <link rel="canonical" href="https://tobacart.github.io/TobaKart-App/contact.html">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'media',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { primary: '#0f172a', accent: '#3b82f6' }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .glass-input { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(4px); border: 1px solid rgba(0, 0, 0, 0.05); transition: all 0.2s ease; }
+        .glass-input:focus { background: #ffffff; border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
+        @media (prefers-color-scheme: dark) {
+            .glass { background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); }
+            .glass-input { background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); color: white; }
+            .glass-input:focus { background: rgba(30, 41, 59, 0.8); border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+        }
+        
+        .fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+        .floating-shape { animation: float 6s ease-in-out infinite; }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
+        
+        /* Custom Toast Notification */
+        #toast { visibility: hidden; min-width: 250px; background-color: #10b981; color: #fff; text-align: center; border-radius: 12px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; font-weight: 700; transform: translateX(-50%); box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4); opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
+        #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+    </style>
+
+    <!-- JSON-LD ContactPage & Organization Schema -->
+    <script type="application/ld+json">
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "TobaKart",
+        "url": "https://tobacart.github.io/TobaKart-App/",
+        "logo": "https://tobacart.github.io/TobaKart-App/favicon-512x512.png",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+91-0000000000",
+          "contactType": "customer service",
+          "areaServed": "IN",
+          "availableLanguage": ["en", "hi", "gu"]
+        }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "ContactPage",
+        "name": "Contact TobaKart Support",
+        "description": "Reach out to TobaKart for support, inquiries, and local e-commerce assistance in Surat.",
+        "url": "https://tobacart.github.io/TobaKart-App/contact.html"
+      }
+    ]
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-200 antialiased relative overflow-x-hidden selection:bg-accent selection:text-white">
+    
+    <!-- Background Floating Elements -->
+    <div class="fixed top-[-10%] left-[-10%] w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 dark:opacity-10 floating-shape z-[-1]"></div>
+    <div class="fixed bottom-[-10%] right-[-10%] w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 dark:opacity-10 floating-shape z-[-1]" style="animation-delay: 2s;"></div>
+
+    <!-- Glass Navigation -->
+    <nav class="glass sticky top-0 z-50 px-6 py-4 transition-all duration-300">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-accent rounded-lg" aria-label="Go to Home">
+                <div class="w-10 h-10 bg-primary dark:bg-white text-white dark:text-primary rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform"><i class="fa-solid fa-leaf"></i></div>
+                <span class="font-black text-xl tracking-tight text-primary dark:text-white">TobaKart</span>
+            </a>
+            <a href="contact.html" class="text-sm font-bold text-accent transition-colors">Contact Support</a>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-6 py-12 md:py-20">
+        <header class="text-center mb-12 md:mb-16 fade-in-up">
+            <h1 class="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">Get in Touch</h1>
+            <p class="text-gray-500 dark:text-gray-400 font-medium max-w-2xl mx-auto">Have a question about your order, our platform, or local delivery in Surat? Send us a message and our support team will respond promptly.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 fade-in-up" style="animation-delay: 0.1s;">
+            
+            <!-- Contact Information Cards -->
+            <div class="space-y-6">
+                <div class="glass rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(255,255,255,0.02)] transition-transform hover:-translate-y-1 duration-300">
+                    <div class="w-14 h-14 bg-green-50 dark:bg-green-900/30 text-green-500 rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-sm"><i class="fa-brands fa-whatsapp"></i></div>
+                    <h3 class="text-xl font-black text-gray-900 dark:text-white mb-2">Chat on WhatsApp</h3>
+                    <p class="text-gray-500 dark:text-gray-400 font-medium text-sm mb-4">Fastest response time. Available Monday to Saturday, 9 AM to 8 PM.</p>
+                    <a href="https://wa.me/910000000000" target="_blank" class="inline-flex items-center gap-2 font-bold text-green-500 hover:text-green-600 transition-colors">Message Us <i class="fa-solid fa-arrow-right-long mt-0.5"></i></a>
+                </div>
+
+                <div class="glass rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(255,255,255,0.02)] transition-transform hover:-translate-y-1 duration-300">
+                    <div class="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 text-blue-500 rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-sm"><i class="fa-regular fa-envelope"></i></div>
+                    <h3 class="text-xl font-black text-gray-900 dark:text-white mb-2">Email Support</h3>
+                    <p class="text-gray-500 dark:text-gray-400 font-medium text-sm mb-4">For business inquiries, account issues, or detailed questions.</p>
+                    <a href="mailto:support@tobacart.com" class="inline-flex items-center gap-2 font-bold text-blue-500 hover:text-blue-600 transition-colors">support@tobacart.com <i class="fa-solid fa-arrow-right-long mt-0.5"></i></a>
+                </div>
+
+                <div class="glass rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(255,255,255,0.02)] transition-transform hover:-translate-y-1 duration-300">
+                    <div class="w-14 h-14 bg-purple-50 dark:bg-purple-900/30 text-purple-500 rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-sm"><i class="fa-solid fa-location-dot"></i></div>
+                    <h3 class="text-xl font-black text-gray-900 dark:text-white mb-2">Headquarters</h3>
+                    <p class="text-gray-500 dark:text-gray-400 font-medium text-sm">TobaKart Administration<br>Surat, Gujarat, India</p>
+                </div>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="glass rounded-3xl p-8 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(255,255,255,0.02)] h-fit">
+                <h2 class="text-2xl font-black text-gray-900 dark:text-white mb-6">Send a Message</h2>
+                <form id="contact-form" class="space-y-5">
+                    <div>
+                        <label for="name" class="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Full Name</label>
+                        <input type="text" id="name" required placeholder="John Doe" class="glass-input w-full rounded-xl px-4 py-3.5 font-bold text-sm text-gray-800 placeholder-gray-400 dark:placeholder-gray-600">
+                    </div>
+                    <div>
+                        <label for="email" class="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Email Address</label>
+                        <input type="email" id="email" required placeholder="john@example.com" class="glass-input w-full rounded-xl px-4 py-3.5 font-bold text-sm text-gray-800 placeholder-gray-400 dark:placeholder-gray-600">
+                    </div>
+                    <div>
+                        <label for="subject" class="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Subject</label>
+                        <input type="text" id="subject" required placeholder="Order Inquiry" class="glass-input w-full rounded-xl px-4 py-3.5 font-bold text-sm text-gray-800 placeholder-gray-400 dark:placeholder-gray-600">
+                    </div>
+                    <div>
+                        <label for="message" class="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Your Message</label>
+                        <textarea id="message" required rows="4" placeholder="How can we help you?" class="glass-input w-full rounded-xl px-4 py-3.5 font-bold text-sm text-gray-800 placeholder-gray-400 dark:placeholder-gray-600 resize-none"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-primary dark:bg-white text-white dark:text-primary font-black py-4 rounded-xl shadow-[0_8px_20px_-6px_rgba(15,23,42,0.4)] dark:shadow-[0_8px_20px_-6px_rgba(255,255,255,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-transform flex justify-center items-center gap-2">
+                        Send Message <i class="fa-regular fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md mt-12 py-10">
+        <div class="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 mb-8 text-sm font-semibold">
+            <div class="flex flex-col gap-3">
+                <h4 class="text-gray-900 dark:text-white font-black uppercase tracking-wider mb-2">Legal</h4>
+                <a href="privacy-policy.html" class="text-gray-500 hover:text-accent transition-colors">Privacy Policy</a>
+                <a href="terms-and-conditions.html" class="text-gray-500 hover:text-accent transition-colors">Terms & Conditions</a>
+                <a href="cookie-policy.html" class="text-gray-500 hover:text-accent transition-colors">Cookie Policy</a>
+                <a href="disclaimer.html" class="text-gray-500 hover:text-accent transition-colors">Disclaimer</a>
+            </div>
+            <div class="flex flex-col gap-3">
+                <h4 class="text-gray-900 dark:text-white font-black uppercase tracking-wider mb-2">Support</h4>
+                <a href="refund-and-cancellation-policy.html" class="text-gray-500 hover:text-accent transition-colors">Refund Policy</a>
+                <a href="shipping-policy.html" class="text-gray-500 hover:text-accent transition-colors">Shipping Policy</a>
+                <a href="contact.html" class="text-accent">Contact Us</a>
+            </div>
+        </div>
+        <div class="max-w-5xl mx-auto px-6 border-t border-gray-200 dark:border-gray-800 pt-6 flex flex-col md:flex-row justify-between items-center text-xs font-bold text-gray-400">
+            <p>&copy; <span id="year"></span> TobaKart. All Rights Reserved.</p>
+            <p class="mt-2 md:mt-0">Made with precision in Surat, Gujarat.</p>
+        </div>
+    </footer>
+
+    <!-- Toast Notification Element -->
+    <div id="toast"><i class="fa-solid fa-circle-check mr-2"></i> Message Sent Successfully!</div>
+
+    <script>
+        // Set dynamic year
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Handle form submission without a backend (Vanilla JS)
+        document.getElementById('contact-form').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent page reload
+            
+            // Show toast notification
+            const toast = document.getElementById('toast');
+            toast.className = "show";
+            
+            // Reset form fields
+            this.reset();
+            
+            // Hide toast after 3 seconds
+            setTimeout(function(){ 
+                toast.className = toast.className.replace("show", ""); 
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
