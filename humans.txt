@@ -1,0 +1,10 @@
+/* TEAM */
+Engineer: Senior E-commerce Architect
+Designer: Senior UI/UX Designer
+Location: Surat, Gujarat, India
+
+/* SITE */
+Last update: 2026-07-10
+Language: English
+Doctype: HTML5
+IDE: GitHub Pages
