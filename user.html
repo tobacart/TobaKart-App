@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" type="image/png" href="/TobaKart-App/user_favicon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tobacart | Premium Shopping</title>
@@ -121,6 +120,49 @@
         </div>
     </div>
 
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="fixed inset-0 z-[120] hidden items-end justify-center glass-overlay sm:items-center sm:p-4">
+        <div class="bg-white w-full max-w-md p-6 slide-in-bottom rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-5 pb-3 border-b border-gray-100 shrink-0">
+                <h3 class="text-lg font-black text-gray-900"><i class="fa-solid fa-user-pen text-accent mr-2"></i> Change Profile</h3>
+                <button onclick="closeModal('edit-profile-modal')" class="w-8 h-8 bg-gray-100 rounded-full text-gray-500 active:scale-95 transition-transform"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto space-y-4 mb-5 hide-scrollbar px-1">
+                <div>
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Full Name *</label>
+                    <input type="text" id="ep-name" class="pro-input !p-3 !text-sm" placeholder="John Doe">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Mobile Number *</label>
+                    <input type="tel" id="ep-phone" class="pro-input !p-3 !text-sm" placeholder="+91 0000000000">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Email Address</label>
+                    <input type="email" id="ep-email" class="pro-input !p-3 !text-sm" placeholder="user@example.com">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Complete Address</label>
+                    <textarea id="ep-address" class="pro-input !p-3 !text-sm h-20 resize-none leading-relaxed" placeholder="House No., Building Name, Street Area..."></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <div class="flex-1">
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">City</label>
+                        <input type="text" id="ep-city" class="pro-input !p-3 !text-sm" placeholder="City">
+                    </div>
+                    <div class="flex-1">
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">State</label>
+                        <input type="text" id="ep-state" class="pro-input !p-3 !text-sm" placeholder="State">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">PIN Code</label>
+                    <input type="number" id="ep-pincode" class="pro-input !p-3 !text-sm" placeholder="e.g. 395003">
+                </div>
+            </div>
+            <button id="btn-save-profile" class="btn-primary shrink-0 py-4 shadow-xl text-lg flex justify-center items-center gap-2" onclick="saveProfileChanges()">Save Changes</button>
+        </div>
+    </div>
+
     <div id="app-view" class="hidden min-h-screen w-full flex-col max-w-md mx-auto bg-[var(--bg-body)] relative shadow-2xl sm:border-x sm:border-[var(--border-color)]">
         
         <nav class="glass-nav sticky top-0 w-full z-30 px-4 py-3 flex justify-between items-center bg-white/95 backdrop-blur-md hidden shadow-sm" id="top-navbar-fixed">
@@ -233,10 +275,12 @@
                 </div>
 
                 <div class="bg-white border-y border-gray-100 shadow-sm">
+                    <!-- Orders -->
                     <div class="menu-item px-5 py-4 border-b border-gray-50 flex justify-between items-center cursor-pointer" onclick="document.querySelector('[data-target=\'orders\']').click()">
                         <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-accent"><i class="fa-solid fa-box-open text-sm"></i></div><span class="font-bold text-gray-800 text-sm">Orders</span></div><i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
                     </div>
                     
+                    <!-- App Language -->
                     <div class="menu-item px-5 py-4 border-b border-gray-50 flex justify-between items-center cursor-pointer relative group">
                         <div class="flex items-center gap-4">
                             <div class="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-500"><i class="fa-solid fa-language text-sm"></i></div>
@@ -253,9 +297,50 @@
                         </div>
                     </div>
 
+                    <!-- Manage Address -->
                     <div class="menu-item px-5 py-4 border-b border-gray-50 flex justify-between items-center cursor-pointer" onclick="openAddressModal()">
                         <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center text-rose-500"><i class="fa-solid fa-location-dot text-sm"></i></div><span class="font-bold text-gray-800 text-sm">Manage Address</span></div><i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
                     </div>
+
+                    <!-- Change Profile (NEW) -->
+                    <div class="menu-item px-5 py-4 border-b border-gray-50 flex justify-between items-center cursor-pointer" onclick="openEditProfileModal()">
+                        <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500"><i class="fa-solid fa-user-pen text-sm"></i></div><span class="font-bold text-gray-800 text-sm">Change Profile</span></div><i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                    </div>
+
+                    <!-- Privacy Policy (NEW) -->
+                    <a href="privacy-policy.html" class="menu-item px-5 py-4 border-b border-gray-50 flex justify-between items-center cursor-pointer block">
+                        <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500"><i class="fa-solid fa-shield-halved text-sm"></i></div><span class="font-bold text-gray-800 text-sm">Privacy Policy</span></div><i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                    </a>
+
+                    <!-- Terms & Conditions (NEW) -->
+                    <a href="terms-and-conditions.html" class="menu-item px-5 py-4 border-b border-gray-50 flex justify-between items-center cursor-pointer block">
+                        <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500"><i class="fa-solid fa-file-contract text-sm"></i></div><span class="font-bold text-gray-800 text-sm">Terms & Conditions</span></div><i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                    </a>
+
+                    <!-- Shipping Policy (NEW) -->
+                    <a href="shipping-policy.html" class="menu-item px-5 py-4 border-b border-gray-50 flex justify-between items-center cursor-pointer block">
+                        <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500"><i class="fa-solid fa-truck-fast text-sm"></i></div><span class="font-bold text-gray-800 text-sm">Shipping Policy</span></div><i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                    </a>
+
+                    <!-- Refund & Cancellation Policy (NEW) -->
+                    <a href="refund-and-cancellation-policy.html" class="menu-item px-5 py-4 border-b border-gray-50 flex justify-between items-center cursor-pointer block">
+                        <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500"><i class="fa-solid fa-arrow-rotate-left text-sm"></i></div><span class="font-bold text-gray-800 text-sm">Refund & Cancellation Policy</span></div><i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                    </a>
+
+                    <!-- Cookie Policy (NEW) -->
+                    <a href="cookie-policy.html" class="menu-item px-5 py-4 border-b border-gray-50 flex justify-between items-center cursor-pointer block">
+                        <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500"><i class="fa-solid fa-cookie text-sm"></i></div><span class="font-bold text-gray-800 text-sm">Cookie Policy</span></div><i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                    </a>
+
+                    <!-- Disclaimer (NEW) -->
+                    <a href="disclaimer.html" class="menu-item px-5 py-4 border-b border-gray-50 flex justify-between items-center cursor-pointer block">
+                        <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500"><i class="fa-solid fa-circle-exclamation text-sm"></i></div><span class="font-bold text-gray-800 text-sm">Disclaimer</span></div><i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                    </a>
+
+                    <!-- Contact Us (NEW) -->
+                    <a href="contact.html" class="menu-item px-5 py-4 border-b border-gray-50 flex justify-between items-center cursor-pointer block">
+                        <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500"><i class="fa-solid fa-headset text-sm"></i></div><span class="font-bold text-gray-800 text-sm">Contact Us</span></div><i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                    </a>
                 </div>
             </section>
         </main>
@@ -465,6 +550,74 @@
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
 
+        // Change Profile Logic
+        window.openEditProfileModal = () => {
+            let freshUser = currentUser.id.startsWith('guest_') ? currentUser : (getDB('users_profile').find(u => u.id === currentUser.id) || currentUser);
+            
+            document.getElementById('ep-name').value = freshUser.name === 'Guest User' ? '' : (freshUser.name || '');
+            document.getElementById('ep-phone').value = freshUser.phone || '';
+            document.getElementById('ep-email').value = freshUser.email || '';
+            document.getElementById('ep-address').value = freshUser.address || '';
+            document.getElementById('ep-city').value = freshUser.city || '';
+            document.getElementById('ep-state').value = freshUser.state || '';
+            document.getElementById('ep-pincode').value = freshUser.pincode || '';
+            
+            openModal('edit-profile-modal');
+        };
+
+        window.saveProfileChanges = () => {
+            const name = document.getElementById('ep-name').value.trim();
+            const phone = document.getElementById('ep-phone').value.trim();
+            const email = document.getElementById('ep-email').value.trim();
+            const address = document.getElementById('ep-address').value.trim();
+            const city = document.getElementById('ep-city').value.trim();
+            const state = document.getElementById('ep-state').value.trim();
+            const pincode = document.getElementById('ep-pincode').value.trim();
+
+            if (!name) return showToast('Full Name cannot be empty', 'error');
+            if (!phone) return showToast('Mobile Number cannot be empty', 'error');
+            if (phone.length < 10) return showToast('Enter a valid Mobile Number', 'error');
+            if (email && !email.includes('@')) return showToast('Enter a valid Email Address', 'error');
+            if (pincode && pincode.length < 5) return showToast('Enter a valid PIN Code', 'error');
+
+            const btn = document.getElementById('btn-save-profile');
+            const oldText = btn.innerHTML;
+            btn.innerHTML = '<div class="loader mx-auto border-white border-t-transparent"></div>';
+
+            setTimeout(() => {
+                let updatedData = { name, phone, email, address, city, state, pincode };
+
+                if (currentUser.id.startsWith('guest_')) {
+                    currentUser = { ...currentUser, ...updatedData };
+                    localStorage.setItem('tobacart_user_auth', JSON.stringify(currentUser));
+                } else {
+                    let users = getDB('users_profile');
+                    let uIdx = users.findIndex(u => u.id === currentUser.id);
+                    if (uIdx > -1) {
+                        users[uIdx] = { ...users[uIdx], ...updatedData };
+                        saveDB('users_profile', users);
+                        currentUser = users[uIdx];
+                        localStorage.setItem('tobacart_user_auth', JSON.stringify(currentUser));
+                    }
+                }
+
+                // Dynamically update everywhere
+                document.getElementById('header-user-name').innerText = currentUser.name.split(' ')[0] || 'User';
+                document.getElementById('profile-name-disp').innerText = currentUser.name || 'User';
+                document.getElementById('profile-phone-disp').innerText = currentUser.phone || 'No Mobile Number';
+                document.getElementById('prof-address').value = currentUser.address || '';
+                
+                const chkName = document.getElementById('chk-name'); if (chkName) chkName.value = currentUser.name;
+                const chkPhone = document.getElementById('chk-phone'); if (chkPhone) chkPhone.value = currentUser.phone;
+                const chkAddress = document.getElementById('chk-address'); if (chkAddress) chkAddress.value = currentUser.address;
+                const chkPincode = document.getElementById('chk-pincode'); if (chkPincode) chkPincode.value = currentUser.pincode;
+
+                showToast('Profile updated securely! 🎉');
+                closeModal('edit-profile-modal');
+                btn.innerHTML = oldText;
+            }, 600);
+        };
+
         function checkPlatformUpdate() {
             let upd = getDB('platform_update');
             if(Array.isArray(upd)) upd = { enabled: false };
@@ -595,16 +748,14 @@
             let products = getDB('products');
             let prefs = JSON.parse(localStorage.getItem('tobacart_user_prefs_' + currentUser.id)) || {};
             
-            // Apply current category filter
             if(activeCategory !== 'All') {
                 products = products.filter(p => p.category === activeCategory);
             } else {
-                // Apply Advanced User Recommendation Algorithm
                 products.sort((a, b) => {
                     let scoreA = prefs[a.category] || 0;
                     let scoreB = prefs[b.category] || 0;
                     if (scoreA !== scoreB) return scoreB - scoreA;
-                    return 0.5 - Math.random(); // Subtle shuffle for similar scored items
+                    return 0.5 - Math.random(); 
                 });
             }
             
@@ -639,7 +790,7 @@
 
         window.quickAddCart = (id) => {
             const products = getDB('products'); const p = products.find(x => x.id === id); if(!p) return;
-            trackUserPreference(p.category, 3); // Update preference on quick add
+            trackUserPreference(p.category, 3);
             
             let cart = getCart(); 
             
@@ -649,7 +800,6 @@
             let varNames = 'base';
 
             if (p.packs && p.packs.length > 0) {
-                // If it has variations, default to quick adding the first variation
                 const pk = p.packs[0];
                 selectedPacks.push(pk);
                 fPrice = Number(pk.price) || 0;
@@ -688,13 +838,11 @@
                 const target = e.currentTarget;
                 activeCategory = target.dataset.cat; 
                 
-                // Update specific active UI states without a full reload
                 renderCategories();
                 
                 let gridTitle = document.getElementById('grid-title');
                 if(gridTitle) gridTitle.innerText = activeCategory === 'All' ? 'Trending Now' : activeCategory;
                 
-                // Immediately filter both the Instant Buy page and the normal grid based on the selection
                 renderProducts();
                 renderInstantBuyPage();
             });
@@ -708,12 +856,11 @@
             if(activeCategory !== 'All') {
                 products = products.filter(p => p.category === activeCategory);
             } else {
-                // Apply Advanced User Recommendation Algorithm
                 products.sort((a, b) => {
                     let scoreA = prefs[a.category] || 0;
                     let scoreB = prefs[b.category] || 0;
                     if (scoreA !== scoreB) return scoreB - scoreA;
-                    return 0.5 - Math.random(); // Subtle shuffle for similar scored items
+                    return 0.5 - Math.random(); 
                 });
             }
 
@@ -793,7 +940,6 @@
                     box.classList.add('border-primary', 'bg-blue-50/50');
                     box.classList.remove('border-gray-200');
                     const pk = JSON.parse(chk.value);
-                    // Use Variation price exclusively instead of adding to base price
                     fPrice = Number(pk.price) || 0;
                     fMrp = Number(pk.mrp || pk.price) || 0;
                 } else {
@@ -807,13 +953,12 @@
 
         function openProduct(id) {
             const p = getDB('products').find(x => x.id === id); if(!p) return; currentProductView = p;
-            trackUserPreference(p.category, 1); // Track preference on view
+            trackUserPreference(p.category, 1); 
 
             document.getElementById('detail-page-img').src = p.imageUrl; document.getElementById('detail-page-title').innerText = p.title; document.getElementById('detail-page-desc').innerText = p.description || 'Premium item. Excellent Quality.';
             const comboSec = document.getElementById('combo-section'); const varsDiv = document.getElementById('detail-page-variations');
             if(p.packs && p.packs.length > 0) {
                 comboSec.classList.remove('hidden');
-                // Use Radio Buttons for single selection logic
                 varsDiv.innerHTML = p.packs.map((pack, idx) => {
                     return `<label class="pack-box cursor-pointer flex justify-between items-center border ${idx === 0 ? 'border-primary bg-blue-50/50' : 'border-gray-200'} p-4 rounded-xl transition-all">
                         <div class="flex items-center gap-3">
@@ -823,7 +968,6 @@
                         <span class="font-black text-gray-900">₹${pack.price}</span>
                     </label>`;
                 }).join('');
-                // Initialize default product price matching the first variation
                 let initialPack = p.packs[0];
                 document.getElementById('detail-page-price').innerText = Number(initialPack.price) || 0; 
                 document.getElementById('detail-page-mrp').innerText = Number(initialPack.mrp || initialPack.price) || 0;
@@ -839,7 +983,7 @@
         
         document.getElementById('btn-add-to-cart-page').onclick = () => { 
             if(!currentProductView) return; 
-            trackUserPreference(currentProductView.category, 3); // Track preference on full add
+            trackUserPreference(currentProductView.category, 3); 
             
             let cart = getCart(); 
             let selectedPacks = []; 
@@ -851,7 +995,6 @@
                 if (checkedPack) {
                     const pk = JSON.parse(checkedPack.value);
                     selectedPacks.push(pk);
-                    // Strictly use variation price entirely replacing base price
                     fPrice = Number(pk.price) || 0;
                     fMrp = Number(pk.mrp || pk.price) || 0;
                 }
@@ -900,6 +1043,7 @@
             document.getElementById('chk-name').value = freshUser.name === 'Guest User' ? '' : freshUser.name; 
             document.getElementById('chk-phone').value = freshUser.phone || ''; 
             if(freshUser.address) document.getElementById('chk-address').value = freshUser.address;
+            if(freshUser.pincode) document.getElementById('chk-pincode').value = freshUser.pincode;
             
             chkArea.classList.remove('hidden'); document.getElementById('cart-bill-summary').classList.remove('hidden');
         }
