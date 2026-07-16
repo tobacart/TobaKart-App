@@ -1,41 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" type="image/png" href="favicon.png">
+    <!-- Charset & Viewport -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- Basic SEO -->
-<title>TobaKart - Official Shopping App | Local Stores & Fast Delivery</title>
-
-<meta name="description" content="TobaKart is India's smart local shopping platform. Shop from trusted local stores, discover products, and enjoy fast delivery. Download the official TobaKart app today.">
-
-<meta name="keywords" content="TobaKart, Toba Kart, TobaKart App, Local Shopping, Online Shopping India, Grocery Delivery, Fast Delivery">
-
-<meta name="author" content="TobaKart">
-<meta name="robots" content="index, follow">
-
-<!-- Canonical URL -->
-<link rel="canonical" href="https://tobacart.github.io/TobaKart-App/">
-
-<!-- Open Graph -->
-<meta property="og:title" content="TobaKart - Official Shopping App">
-<meta property="og:description" content="Shop from trusted local stores with TobaKart.">
-<meta property="og:url" content="https://tobacart.github.io/TobaKart-App/">
-<meta property="og:type" content="website">
-
-<!-- Theme Color -->
-<meta name="theme-color" content="#2563eb">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
+    <!-- Primary SEO Metadata -->
+    <title>TobaKart - Official Shopping App | Local Stores & Fast Delivery</title>
+    <meta name="title" content="TobaKart - Official Shopping App | Local Stores & Fast Delivery">
+    <meta name="description" content="TobaKart is your smart local shopping platform. Shop from trusted local stores, discover products, and enjoy fast delivery. Download the official TobaKart app today.">
+    <meta name="keywords" content="TobaKart, Toba Kart, Tobacart, TobaKart App, Local Shopping, Online Shopping India, Grocery Delivery, Fast Delivery, Local Stores">
+    <meta name="author" content="TobaKart">
+    <meta name="publisher" content="TobaKart">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="language" content="English">
     
-    <title>TobaKart - Online Shopping App | Local Stores, Fast Delivery</title>
-
-<meta name="description" content="Download TobaKart and shop from trusted local stores. Fast delivery, secure checkout and a simple shopping experience.">
-   
-    <meta name="google-site-verification" content="MBsgxEg1dAmw6SyAFLDqsXCFA4VucGwpSP5odlt3xuM" />
+    <!-- Google Site Name / Branding -->
+    <meta property="og:site_name" content="TobaKart">
+    <meta name="application-name" content="TobaKart">
     
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://tobacart.github.io/TobaKart-App/">
+    
+    <!-- Security / Verification -->
+    <meta name="google-site-verification" content="MBsgxEg1dAmw6SyAFLDqsXCFA4VucGwpSP5odlt3xuM">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- Open Graph / Facebook / LinkedIn / Discord -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tobacart.github.io/TobaKart-App/">
+    <meta property="og:title" content="TobaKart - Official Shopping App">
+    <meta property="og:description" content="Shop from trusted local stores with TobaKart. Get your essentials delivered fast.">
+    <meta property="og:image" content="https://tobacart.github.io/TobaKart-App/favicon.png">
+    <meta property="og:image:alt" content="TobaKart Logo">
+    <meta property="og:locale" content="en_IN">
+    
+    <!-- Twitter / Telegram Preview -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://tobacart.github.io/TobaKart-App/">
+    <meta name="twitter:title" content="TobaKart - Official Shopping App">
+    <meta name="twitter:description" content="Shop from trusted local stores with TobaKart. Get your essentials delivered fast.">
+    <meta name="twitter:image" content="https://tobacart.github.io/TobaKart-App/favicon.png">
+    <meta name="twitter:image:alt" content="TobaKart Logo">
+    
+    <!-- PWA / Apple Mobile Web App -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="TobaKart">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    
+    <!-- Preconnect for Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     
+    <!-- Structured Data (JSON-LD) for Google AI, Knowledge Graph & Site Name -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://tobacart.github.io/TobaKart-App/#website",
+          "url": "https://tobacart.github.io/TobaKart-App/",
+          "name": "TobaKart",
+          "alternateName": ["Tobacart", "TobaKart App", "TobaKart Shopping"],
+          "description": "India's smart local shopping platform.",
+          "publisher": {
+            "@id": "https://tobacart.github.io/TobaKart-App/#organization"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://tobacart.github.io/TobaKart-App/search?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://tobacart.github.io/TobaKart-App/#organization",
+          "name": "TobaKart",
+          "alternateName": "Tobacart",
+          "url": "https://tobacart.github.io/TobaKart-App/",
+          "logo": {
+            "@type": "ImageObject",
+            "@id": "https://tobacart.github.io/TobaKart-App/#logo",
+            "url": "https://tobacart.github.io/TobaKart-App/favicon.png",
+            "caption": "TobaKart"
+          },
+          "image": {
+            "@id": "https://tobacart.github.io/TobaKart-App/#logo"
+          },
+          "sameAs": [
+            "https://www.instagram.com/",
+            "https://www.youtube.com/"
+          ]
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://tobacart.github.io/TobaKart-App/#software",
+          "name": "TobaKart App",
+          "applicationCategory": "ShoppingApplication",
+          "operatingSystem": "ANDROID",
+          "url": "https://tobacart.github.io/TobaKart-App/",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "INR"
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -85,52 +175,40 @@
         .delay-200 { animation-delay: 200ms; }
         .delay-300 { animation-delay: 300ms; }
     </style>
-    
-    <script type="application/ld+json">
-{
- "@context":"https://schema.org",
- "@type":"Organization",
- "name":"TobaKart",
- "url":"https://tobacart.github.io/TobaKart-App/",
- "logo":"https://tobacart.github.io/TobaKart-App/favicon.png",
- "sameAs":[
-   "https://www.instagram.com/",
-   "https://www.youtube.com/"
- ]
-}
-</script>
-
 </head>
 <body class="relative bg-gray-50 text-gray-800">
 
     <div class="relative w-full overflow-x-hidden min-h-screen flex flex-col">
 
-        <div class="blob absolute bg-blue-400 w-64 h-64 sm:w-96 sm:h-96 rounded-full top-[-5%] left-[-10%] animate-float"></div>
-        <div class="blob absolute bg-cyan-400 w-64 h-64 sm:w-96 sm:h-96 rounded-full top-[40%] right-[-10%] animate-float" style="animation-delay: -3s;"></div>
+        <!-- Background Blobs -->
+        <div aria-hidden="true" class="blob absolute bg-blue-400 w-64 h-64 sm:w-96 sm:h-96 rounded-full top-[-5%] left-[-10%] animate-float"></div>
+        <div aria-hidden="true" class="blob absolute bg-cyan-400 w-64 h-64 sm:w-96 sm:h-96 rounded-full top-[40%] right-[-10%] animate-float" style="animation-delay: -3s;"></div>
 
-        <nav class="glass-nav fixed w-full top-0 z-50">
+        <!-- Navigation -->
+        <nav class="glass-nav fixed w-full top-0 z-50" aria-label="Main Navigation">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16 sm:h-20">
                     <div class="flex items-center gap-2 sm:gap-3">
                         <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-tr from-primary to-blue-400 text-white rounded-lg sm:rounded-xl flex items-center justify-center shadow-md">
-                            <i class="fa-solid fa-bag-shopping text-sm sm:text-lg"></i>
+                            <i class="fa-solid fa-bag-shopping text-sm sm:text-lg" aria-hidden="true"></i>
                         </div>
                         <span class="font-extrabold text-xl sm:text-2xl tracking-tight text-gray-900">Tobacart<span class="text-primary">.</span></span>
                     </div>
                     
                     <div class="flex items-center">
-                        <a href="tobacart-app.apk" download class="bg-gray-900 text-white px-4 py-2 sm:px-6 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold shadow-md hover:bg-black transition-all flex items-center gap-2">
-                            <i class="fa-brands fa-android"></i> <span class="hidden sm:inline">Download App</span><span class="sm:hidden">Get App</span>
+                        <a href="tobacart-app.apk" download aria-label="Download TobaKart App" class="bg-gray-900 text-white px-4 py-2 sm:px-6 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold shadow-md hover:bg-black transition-all flex items-center gap-2">
+                            <i class="fa-brands fa-android" aria-hidden="true"></i> <span class="hidden sm:inline">Download App</span><span class="sm:hidden">Get App</span>
                         </a>
                     </div>
                 </div>
             </div>
         </nav>
 
+        <!-- Hero Section -->
         <main class="pt-28 pb-12 sm:pt-40 sm:pb-24 px-4 w-full max-w-7xl mx-auto text-center relative z-10 flex-grow">
             <div class="opacity-0 animate-fade-in-up w-full">
                 <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-4 sm:mb-6 border border-blue-100">
-                    <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span></span>
+                    <span class="relative flex h-2 w-2" aria-hidden="true"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span></span>
                     Your Favorite Local Store
                 </span>
                 
@@ -143,17 +221,18 @@
                 </p>
                 
                 <div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 px-4">
-                    <a href="tobacart-app.apk" download class="w-full sm:w-auto bg-primary text-white font-bold text-base sm:text-lg px-6 py-3.5 sm:px-8 sm:py-4 rounded-xl sm:rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all flex items-center justify-center gap-3">
-                        <i class="fa-brands fa-android text-xl"></i> Download App (APK)
+                    <a href="tobacart-app.apk" download aria-label="Download TobaKart Android App" class="w-full sm:w-auto bg-primary text-white font-bold text-base sm:text-lg px-6 py-3.5 sm:px-8 sm:py-4 rounded-xl sm:rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all flex items-center justify-center gap-3">
+                        <i class="fa-brands fa-android text-xl" aria-hidden="true"></i> Download App (APK)
                     </a>
-                    <a href="user.html" class="w-full sm:w-auto bg-white text-gray-900 border border-gray-200 font-bold text-base sm:text-lg px-6 py-3.5 sm:px-8 sm:py-4 rounded-xl sm:rounded-2xl hover:border-gray-300 hover:bg-gray-50 transition-all flex items-center justify-center gap-3 shadow-sm">
-                        <i class="fa-solid fa-globe text-xl"></i> Open in Browser
+                    <a href="user.html" aria-label="Open TobaKart in Browser" class="w-full sm:w-auto bg-white text-gray-900 border border-gray-200 font-bold text-base sm:text-lg px-6 py-3.5 sm:px-8 sm:py-4 rounded-xl sm:rounded-2xl hover:border-gray-300 hover:bg-gray-50 transition-all flex items-center justify-center gap-3 shadow-sm">
+                        <i class="fa-solid fa-globe text-xl" aria-hidden="true"></i> Open in Browser
                     </a>
                 </div>
             </div>
         </main>
 
-        <section class="py-12 sm:py-16 bg-white relative z-10 border-t border-gray-100">
+        <!-- Features Section -->
+        <section class="py-12 sm:py-16 bg-white relative z-10 border-t border-gray-100" aria-label="Features">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-10 sm:mb-16 opacity-0 animate-fade-in-up delay-100">
                     <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900">Why Shop with Tobacart?</h2>
@@ -163,19 +242,19 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
                     
                     <div class="feature-card glass-card rounded-2xl sm:rounded-[2rem] p-6 sm:p-8 relative overflow-hidden group opacity-0 animate-fade-in-up delay-100">
-                        <div class="w-14 h-14 sm:w-16 sm:h-16 bg-blue-100 text-blue-600 rounded-xl sm:rounded-2xl flex items-center justify-center text-2xl sm:text-3xl mb-4 shadow-sm"><i class="fa-solid fa-store"></i></div>
+                        <div aria-hidden="true" class="w-14 h-14 sm:w-16 sm:h-16 bg-blue-100 text-blue-600 rounded-xl sm:rounded-2xl flex items-center justify-center text-2xl sm:text-3xl mb-4 shadow-sm"><i class="fa-solid fa-store"></i></div>
                         <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Local Sellers</h3>
                         <p class="text-sm text-gray-500 font-medium">Browse products from your trusted neighborhood stores, all verified and aggregated in one place.</p>
                     </div>
 
                     <div class="feature-card glass-card rounded-2xl sm:rounded-[2rem] p-6 sm:p-8 relative overflow-hidden group opacity-0 animate-fade-in-up delay-200">
-                        <div class="w-14 h-14 sm:w-16 sm:h-16 bg-emerald-100 text-emerald-600 rounded-xl sm:rounded-2xl flex items-center justify-center text-2xl sm:text-3xl mb-4 shadow-sm"><i class="fa-solid fa-shield-check"></i></div>
+                        <div aria-hidden="true" class="w-14 h-14 sm:w-16 sm:h-16 bg-emerald-100 text-emerald-600 rounded-xl sm:rounded-2xl flex items-center justify-center text-2xl sm:text-3xl mb-4 shadow-sm"><i class="fa-solid fa-shield-check"></i></div>
                         <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Secure Checkout</h3>
                         <p class="text-sm text-gray-500 font-medium">Pay seamlessly and securely. Your transactions are protected with industry-leading encryption.</p>
                     </div>
 
                     <div class="feature-card glass-card rounded-2xl sm:rounded-[2rem] p-6 sm:p-8 relative overflow-hidden group opacity-0 animate-fade-in-up delay-300">
-                        <div class="w-14 h-14 sm:w-16 sm:h-16 bg-purple-100 text-purple-600 rounded-xl sm:rounded-2xl flex items-center justify-center text-2xl sm:text-3xl mb-4 shadow-sm"><i class="fa-solid fa-bolt"></i></div>
+                        <div aria-hidden="true" class="w-14 h-14 sm:w-16 sm:h-16 bg-purple-100 text-purple-600 rounded-xl sm:rounded-2xl flex items-center justify-center text-2xl sm:text-3xl mb-4 shadow-sm"><i class="fa-solid fa-bolt"></i></div>
                         <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Lightning Delivery</h3>
                         <p class="text-sm text-gray-500 font-medium">Get your essentials dropped at your doorstep in record time by our dedicated delivery fleet.</p>
                     </div>
@@ -184,23 +263,25 @@
             </div>
         </section>
 
-        <footer class="bg-gray-900 border-t border-gray-800 py-8 sm:py-10 relative z-10 w-full text-white">
+        <!-- Footer -->
+        <footer class="bg-gray-900 border-t border-gray-800 py-8 sm:py-10 relative z-10 w-full text-white" aria-label="Footer">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
                 <div class="flex items-center gap-2 justify-center">
-                    <div class="w-6 h-6 sm:w-8 sm:h-8 bg-white text-gray-900 rounded-md sm:rounded-lg flex items-center justify-center"><i class="fa-solid fa-bag-shopping text-[10px] sm:text-xs"></i></div>
+                    <div class="w-6 h-6 sm:w-8 sm:h-8 bg-white text-gray-900 rounded-md sm:rounded-lg flex items-center justify-center" aria-hidden="true"><i class="fa-solid fa-bag-shopping text-[10px] sm:text-xs"></i></div>
                     <span class="font-extrabold text-lg sm:text-xl tracking-tight">Tobacart.</span>
                 </div>
-                <p class="text-[10px] sm:text-sm text-gray-400 font-semibold">© 2026 Tobacart Technologies. All rights reserved.</p>
+                <p class="text-[10px] sm:text-sm text-gray-400 font-semibold">© 2026 TobaKart Technologies. All rights reserved.</p>
                 <div class="flex gap-4 text-gray-400 justify-center">
-                    <a href="#" class="hover:text-white transition-colors"><i class="fa-brands fa-instagram text-lg sm:text-xl"></i></a>
-                    <a href="#" class="hover:text-white transition-colors"><i class="fa-brands fa-linkedin text-lg sm:text-xl"></i></a>
-                    <a href="#" class="hover:text-white transition-colors"><i class="fa-brands fa-twitter text-lg sm:text-xl"></i></a>
+                    <a href="#" aria-label="TobaKart on Instagram" class="hover:text-white transition-colors"><i class="fa-brands fa-instagram text-lg sm:text-xl" aria-hidden="true"></i></a>
+                    <a href="#" aria-label="TobaKart on LinkedIn" class="hover:text-white transition-colors"><i class="fa-brands fa-linkedin text-lg sm:text-xl" aria-hidden="true"></i></a>
+                    <a href="#" aria-label="TobaKart on Twitter" class="hover:text-white transition-colors"><i class="fa-brands fa-twitter text-lg sm:text-xl" aria-hidden="true"></i></a>
                 </div>
             </div>
         </footer>
 
     </div>
 
+    <!-- Initialization Scripts -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const animatedElements = document.querySelectorAll('.opacity-0');
